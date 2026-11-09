@@ -1,29 +1,32 @@
 # Implementation status
 
-## Included
-- Flutter mobile application entry point and Material 3 theme.
-- Cubit-based authentication and preferences state.
-- Firebase email/password registration and sign-in, Google sign-in, password reset, and sign-out.
-- Firestore record create, read, update, delete with live snapshot updates.
-- Three persisted preferences: dark theme, notifications preference, and compact layout.
-- Firestore owner-only security rules.
-- Domain model and repository/data/presentation separation.
-- GitHub Actions workflow for format, analyze, and test.
+## Repository structure
+- Flutter application source, feature-first folders, shared/core folders.
+- Android Gradle configuration and Kotlin entry point.
+- iOS Podfile, Runner plist/delegate and launch screen.
+- Web entry point and manifest.
+- Linux, macOS and Windows target directories with generation instructions.
+- Assets, Firebase rules/indexes, docs, tests, tooling and CI workflow.
 
-## Required before a real device run
-1. Install Flutter and Android Studio; use an Android emulator or physical Android device.
-2. Run flutter pub get.
-3. Run dart pub global activate flutterfire_cli, then flutterfire configure for the Firebase project and Android app. This starter calls Firebase.initializeApp() without generated platform options, so valid native Firebase configuration must be added before runtime.
-4. In Firebase Console, enable Email/Password and Google providers in Authentication.
-5. Add Android SHA-1/SHA-256 fingerprints and configure OAuth client IDs as required by Google Sign-In.
-6. Create a Firestore database and deploy firestore.rules.
-7. Run dart format ., flutter analyze, and flutter test.
+## Implemented app capabilities
+- Cubit-based authentication and preferences.
+- Email/password registration/login, Google sign-in, password reset, logout.
+- Firestore record create/read/update/delete with live updates.
+- Three persisted preferences.
+- Owner-scoped Firestore rules.
+- Graceful Firebase configuration screen if options are missing.
 
-## Inputs still needed
-- Approved Figma prototype URL/export and the exact app name/domain/features.
-- Google Drive assignment/reference file contents and Canvas instructions if they contain additional requirements.
-- Group number, member names, and each member's GitHub username for an accurate contribution tracker.
-- Firebase project configuration/access. Never commit service-account private keys or secrets.
+## Must still be completed on a machine with Flutter
+1. Run `flutter create --platforms=android,ios,web,windows,linux,macos .` to generate SDK-version-specific native project files, Gradle wrapper JAR, platform runners and registrants.
+2. Run `flutter pub get` to generate the real `pubspec.lock`.
+3. Configure Firebase options and Google OAuth client IDs.
+4. Run format, analyze, tests and Android device build; fix any diagnostics.
+5. Capture genuine device screenshots and demo evidence.
 
-## Honest completion status
-This is a functional starter implementation, not a claim of pixel-perfect Figma matching, deployed Firebase configuration, 70% test coverage, a release APK, or completed group contributions. Those require the team's design, Firebase project, real device validation, and genuine work by each member.
+## Assignment-specific inputs still missing
+- Approved Figma link/export and app-specific entities/screens.
+- Group number and members' GitHub usernames.
+- Firebase project details / team access.
+
+This document intentionally does not claim that native builds, Firebase deployment,
+test coverage targets, or the final assignment design have already been verified.
