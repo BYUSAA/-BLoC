@@ -2,18 +2,18 @@
 
 A mobile-first Flutter application foundation built with Cubit/BLoC, Clean Architecture, Firebase Authentication, Cloud Firestore and SharedPreferences.
 
-> **Project status:** This repository contains a working implementation foundation, not yet the final product-specific submission. The approved Figma design, app domain requirements, Firebase project credentials and group member details have not been provided. Do not present the generic Records workspace as the approved final design.
+> **Project status:** This repository contains an implementation foundation, not yet the final product-specific submission. The approved Figma design, app domain requirements, Firebase project details and group member information have not been supplied. The generic Records workspace must not be presented as the final approved app design.
 
-## What is implemented
+## Implemented features
 
 - Email/password registration and sign-in, including email verification.
 - Google sign-in with cancellation handled as an unauthenticated result.
 - Password-reset email and sign-out.
 - Authenticated, owner-scoped Firestore records: create, live read, update and delete.
-- Records presentation state managed through `RecordsCubit`.
+- Records presentation state managed through RecordsCubit.
 - Three persisted preferences: dark theme, notifications setting and compact layout.
 - Firestore and Storage security rules, plus the records query index.
-- A Firebase setup screen when compile-time Firebase options are missing.
+- Firebase setup screen when compile-time Firebase options are missing.
 - Unit, widget and integration-test targets.
 - GitHub Actions checks for formatting, analysis, tests and Android release APK builds.
 
@@ -28,6 +28,7 @@ lib/
   features/
     auth/
       data/            Firebase Authentication adapter
+      domain/          Authentication contract
       presentation/    AuthCubit and sign-in UI
     records/
       data/            Firestore repository implementation
@@ -35,20 +36,20 @@ lib/
       presentation/    RecordsCubit, workspace UI and widgets
 ```
 
-The UI calls Cubits; Cubits depend on repository contracts; data implementations communicate with Firebase. See [architecture](docs/architecture.md) and the [Firestore contract](docs/api-contract.md).
+The UI calls Cubits; Cubits depend on repository contracts; data implementations communicate with Firebase. See the architecture guide and Firestore contract in docs.
 
 ## Requirements
 
-- Flutter stable and its bundled Dart SDK.
+- Flutter 3.47.2 (or a compatible newer stable release) and its bundled Dart SDK.
 - Android Studio with Android SDK and an Android emulator or physical Android device.
-- A Firebase project with Email/Password and Google providers enabled, plus Cloud Firestore.
-- A Google OAuth web/server client ID for the Google sign-in flow.
+- Firebase project with Email/Password and Google providers enabled, plus Cloud Firestore.
+- Google OAuth web/server client ID for Google sign-in.
 
-The CI workflow generates complete Android, iOS, web, Windows, Linux and macOS platform scaffolding when any required runner file is missing. iOS/macOS builds require macOS and Xcode; Windows desktop builds require Visual Studio with C++ tools. The assignment's primary run target is Android.
+GitHub Actions generates complete Android, iOS, web, Windows, Linux and macOS platform scaffolding when required runner files are missing. iOS/macOS builds require macOS and Xcode; Windows desktop builds require Visual Studio with C++ tools. Android is the primary assignment run target.
 
 ## Setup on Windows
 
-Open the repository root in Android Studio, then run:
+Open the repository root in Android Studio. In PowerShell or Android Studio's terminal, run:
 
 ```powershell
 flutter pub get
@@ -56,7 +57,7 @@ flutter doctor
 flutter devices
 ```
 
-Create a local, untracked `firebase.local.json` file in the repository root:
+Create a local, untracked firebase.local.json file in the repository root:
 
 ```json
 {
@@ -70,9 +71,9 @@ Create a local, untracked `firebase.local.json` file in the repository root:
 }
 ```
 
-The file is listed in `.gitignore`. Do not commit private service-account keys or other credentials.
+The file is ignored by Git. Never commit Firebase service-account keys, signing credentials or private backend credentials.
 
-Register the Android application ID `com.example.bloc_assignment_app` in Firebase. Enable Email/Password and Google in Authentication, add the Android SHA-1 and SHA-256 fingerprints to the Firebase Android app, and use the OAuth web client ID as `GOOGLE_SERVER_CLIENT_ID`.
+Register the Android application ID com.example.bloc_assignment_app in Firebase. Enable Email/Password and Google in Authentication, add Android SHA-1 and SHA-256 fingerprints to the Firebase app, and use the OAuth web client ID as GOOGLE_SERVER_CLIENT_ID.
 
 Run on an Android emulator or connected Android phone:
 
@@ -80,9 +81,17 @@ Run on an Android emulator or connected Android phone:
 flutter run --dart-define-from-file=firebase.local.json
 ```
 
-Without the local Firebase configuration, the app deliberately opens the setup screen. Authentication and cloud CRUD cannot work until Firebase has been configured.
+Without the local Firebase configuration, the app deliberately opens the setup screen. Authentication and cloud CRUD require Firebase configuration.
 
 ## Quality checks
+
+Run the repeatable PowerShell verification script:
+
+```powershell
+.\tooling\scripts\verify.ps1
+```
+
+It resolves dependencies, checks formatting, runs static analysis and tests with coverage, and builds the Android release APK. Use the SkipBuild switch to skip only APK packaging. Equivalent commands are:
 
 ```powershell
 dart format .
@@ -91,25 +100,25 @@ flutter test --coverage
 flutter build apk --release
 ```
 
-GitHub Actions runs the format, analyzer, test and Android release-build checks. The CI job can publish the generated Android release APK as a workflow artifact. A green local or CI run must be confirmed before claiming the project is build-verified.
+A green CI or local run must be confirmed before claiming that the project is build-verified.
 
 ## Firebase deployment
 
-Install the Firebase CLI, authenticate, select the correct Firebase project, then deploy:
+Install the Firebase CLI, authenticate, select the intended project, then:
 
 ```powershell
 firebase use YOUR_FIREBASE_PROJECT_ID
 firebase deploy --only firestore:rules,firestore:indexes,storage
 ```
 
-Review the rules and test them against your actual Firebase project before enabling production data.
+Review and test the rules against your project before enabling production data.
 
 ## Assignment completion still needed
 
 1. Replace the generic Records workspace with the approved Figma screens and the actual app domain.
 2. Add the team's ERD and any additional collections/entities required by the chosen app.
 3. Confirm the Firebase project, Android package registration and Google OAuth configuration.
-4. Add the real group number, members and each member's genuine GitHub contributions.
-5. Complete the assignment report, capture genuine Android evidence and record the 10–15 minute demo.
+4. Add the real group number, member names and each member's genuine GitHub contributions.
+5. Complete the report, capture genuine Android evidence and record the 10–15 minute demonstration.
 
-See [implementation status](docs/IMPLEMENTATION_STATUS.md), [installation](docs/installation.md), and [report/demo checklist](docs/report-and-demo.md).
+See docs/IMPLEMENTATION_STATUS.md, docs/installation.md, docs/report-and-demo.md, CONTRIBUTING.md and SECURITY.md.
