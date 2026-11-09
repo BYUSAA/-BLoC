@@ -21,7 +21,9 @@ jobs:
           channel: stable
           cache: true
       - name: Generate all Flutter platform projects
-        run: flutter create --platforms=android,ios,web,windows,linux,macos .
+        run: |
+          rm -rf android ios web windows linux macos
+          flutter create --platforms=android,ios,web,windows,linux,macos .
       - name: Resolve dependencies and generate lockfile
         run: flutter pub get
       - name: Commit generated platform scaffold and lockfile
