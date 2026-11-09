@@ -6,19 +6,34 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Generate native platform scaffolding
+      - name: Generate all Flutter platform projects
         run: flutter create --platforms=android,ios,web,windows,linux,macos .
-      - name: Resolve dependencies
+      - name: Resolve dependencies and generate lockfile
         run: flutter pub get
+      - name: Commit generated platform scaffold and lockfile
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android ios web windows linux macos pubspec.lock
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: generate complete Flutter platform scaffolding"
+            git push
+          fi
       - name: Format
         run: dart format .
       - name: Analyze
