@@ -9,46 +9,80 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: flutter-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    name: Format, analyze, test and build Android
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: subosito/flutter-action@v2
+
+      - name: Install Flutter stable
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - name: Generate all Flutter platform projects
+
+      - name: Generate complete Flutter platform projects when incomplete
+        shell: bash
         run: |
-          rm -rf android ios web windows linux macos
-          flutter create --platforms=android,ios,web,windows,linux,macos .
-      - name: Resolve dependencies and generate lockfile
+          if [[ ! -f android/gradle/wrapper/gradle-wrapper.jar ]] || \
+             [[ ! -d ios/Runner.xcodeproj ]] || \
+             [[ ! -d macos/Runner.xcodeproj ]] || \
+             [[ ! -d windows/runner ]] || \
+             [[ ! -d linux/runner ]]; then
+            flutter create --overwrite \
+              --project-name=bloc_assignment_app \
+              --platforms=android,ios,web,windows,linux,macos .
+          fi
+
+      - name: Resolve packages and generate pubspec.lock
         run: flutter pub get
-      - name: Commit generated platform scaffold and lockfile
+
+      - name: Format Dart sources
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: dart format .
+
+      - name: Check Dart formatting on pull requests
+        if: github.event_name == 'pull_request'
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Commit generated scaffolding, lockfile and formatting
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add android ios web windows linux macos pubspec.lock
+          git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "chore: generate complete Flutter platform scaffolding"
+            git commit -m "chore: generate Flutter scaffolding and format sources"
             git push
           fi
-      - name: Format
-        run: dart format .
-      - name: Analyze
-        run: flutter analyze
-      - name: Unit and widget tests
+
+      - name: Analyze with warnings treated as errors
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run unit and widget tests
         run: flutter test --coverage
+
       - name: Build Android release APK
         run: flutter build apk --release
-      - name: Upload APK
+
+      - name: Upload Android release APK
         uses: actions/upload-artifact@v4
         with:
           name: bloc-assignment-android-release
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
