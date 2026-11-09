@@ -29,7 +29,7 @@ flutter run -d <android-device-id> \
   --dart-define=FIREBASE_PROJECT_ID=<project-id>
 ```
 
-Optional: FIREBASE_AUTH_DOMAIN and FIREBASE_STORAGE_BUCKET.
+Optional: FIREBASE_AUTH_DOMAIN, FIREBASE_STORAGE_BUCKET and GOOGLE_SERVER_CLIENT_ID (the OAuth web/server client ID used by Google Sign-In).
 Register Android application ID `com.example.bloc_assignment_app` in Firebase
 and configure SHA-1/SHA-256 for Google sign-in. Never commit service-account keys.
 
