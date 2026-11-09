@@ -12,7 +12,9 @@ class AuthRepositoryImpl {
     await result.user?.sendEmailVerification();
   }
   Future<void> signInWithGoogle() async {
-    final account = await GoogleSignIn().signIn();
+    final serverClientId = const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+    final googleSignIn = GoogleSignIn(serverClientId: serverClientId.isEmpty ? null : serverClientId);
+    final account = await googleSignIn.signIn();
     if (account == null) return;
     final tokens = await account.authentication;
     final credential = GoogleAuthProvider.credential(accessToken: tokens.accessToken, idToken: tokens.idToken);
