@@ -34,10 +34,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Flutter stable
+      - name: Install Flutter 3.47.2
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.47.2'
           cache: true
 
       - name: Generate complete Flutter platform projects when incomplete
@@ -92,10 +92,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Flutter stable
+      - name: Install Flutter 3.47.2
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.47.2'
           cache: true
 
       - name: Generate platform projects in the validation workspace when needed
