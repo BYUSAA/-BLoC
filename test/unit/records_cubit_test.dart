@@ -8,11 +8,18 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeRecordsRepository implements RecordsRepository {
   final StreamController<List<Record>> _controller =
       StreamController<List<Record>>.broadcast();
+
   final List<Record> records = [];
   bool shouldFail = false;
+  bool shouldFailStream = false;
 
   @override
-  Stream<List<Record>> watchRecords() => _controller.stream;
+  Stream<List<Record>> watchRecords() {
+    if (shouldFailStream) {
+      throw StateError('simulated stream failure');
+    }
+    return _controller.stream;
+  }
 
   void publish() {
     _controller.add(List<Record>.unmodifiable(records));
@@ -105,11 +112,49 @@ void main() {
     await loaded;
   });
 
-  test('create delegates to the repository', () async {
+  test('retries after a synchronous stream setup failure', () async {
+    repository.shouldFailStream = true;
+    cubit.watch();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(cubit.state.status, RecordsStatus.failure);
+
+    repository.shouldFailStream = false;
+    final loaded = expectLater(
+      cubit.stream,
+      emitsThrough(
+        isA<RecordsState>().having(
+          (state) => state.status,
+          'status',
+          RecordsStatus.loaded,
+        ),
+      ),
+    );
+    cubit.watch();
+    await Future<void>.delayed(Duration.zero);
+    repository.publish();
+
+    await loaded;
+    expect(cubit.state.status, RecordsStatus.loaded);
+  });
+
+  test('create, update and delete delegate to the repository', () async {
     await cubit.create(title: 'New item', description: 'Details');
 
     expect(repository.records, hasLength(1));
-    expect(repository.records.single.title, 'New item');
+    final created = repository.records.single;
+    expect(created.title, 'New item');
+
+    await cubit.update(
+      created,
+      title: 'Updated item',
+      description: 'Updated details',
+    );
+    expect(repository.records.single.title, 'Updated item');
+    expect(repository.records.single.description, 'Updated details');
+
+    await cubit.delete(created.id);
+    expect(repository.records, isEmpty);
     expect(cubit.state.isMutating, isFalse);
   });
 
