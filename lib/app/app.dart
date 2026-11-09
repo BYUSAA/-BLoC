@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/preferences/preferences_cubit.dart';
 import '../features/auth/presentation/auth_cubit.dart';
 import '../features/auth/presentation/sign_in_page.dart';
-import '../features/records/data/records_repository_impl.dart';
+import '../features/records/domain/records_repository.dart';
 import '../features/records/presentation/records_page.dart';
 
 class AssignmentApp extends StatelessWidget {
@@ -28,7 +28,7 @@ class AssignmentApp extends StatelessWidget {
 
           if (state.status == AuthStatus.authenticated) {
             return RecordsPage(
-              repository: context.read<RecordsRepositoryImpl>(),
+              repository: context.read<RecordsRepository>(),
             );
           }
 
