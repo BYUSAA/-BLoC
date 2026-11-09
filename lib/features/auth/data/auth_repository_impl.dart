@@ -68,8 +68,9 @@ class AuthRepositoryImpl {
   Future<void> signOut() async {
     try {
       await GoogleSignIn().signOut();
-    } finally {
-      await _auth.signOut();
+    } catch (_) {
+      // Firebase Auth remains the source of truth for the active session.
     }
+    await _auth.signOut();
   }
 }
