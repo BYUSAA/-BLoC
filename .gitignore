@@ -11,6 +11,12 @@ coverage/
 /android/key.properties
 /android/app/google-services.json
 /lib/firebase_options.dart
-.idea/
-.vscode/
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+/ios/Pods/
+/macos/Pods/
+/.firebase/
+/.idea/
+/.vscode/
 *.iml
+.DS_Store
