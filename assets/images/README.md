@@ -1,11 +1,5 @@
 # Image assets
 
-Store approved raster or vector images used by the application in this folder.
+Store approved raster or vector images used by the app here. Use descriptive lowercase filenames, optimize image sizes, and register assets in `pubspec.yaml` before referencing them.
 
-- Use descriptive, lowercase, hyphen-separated filenames.
-- Prefer SVG for scalable illustrations and WebP/PNG for raster assets.
-- Optimize image sizes before committing them.
-- Do not add copyrighted assets without permission or private user images.
-- Register assets in pubspec.yaml and reference them with package-relative paths.
-
-Only add assets that are used by the approved Figma design or application screens.
+Do not add copyrighted images without permission or private user images. Only include files used by the approved design.

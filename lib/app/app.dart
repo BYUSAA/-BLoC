@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'constants/app_constants.dart';
+import 'theme/app_theme.dart';
 import '../core/preferences/preferences_cubit.dart';
+import '../core/widgets/app_loading.dart';
 import '../features/auth/presentation/auth_cubit.dart';
 import '../features/auth/presentation/sign_in_page.dart';
 import '../features/records/domain/records_repository.dart';
@@ -15,11 +18,11 @@ class AssignmentApp extends StatelessWidget {
     final preferences = context.watch<PreferencesCubit>().state;
 
     return MaterialApp(
-      title: 'BLoC Assignment',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       themeMode: preferences.darkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       home: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           if (state.status == AuthStatus.unknown) {
@@ -49,11 +52,11 @@ class FirebaseSetupApp extends StatelessWidget {
     final preferences = context.watch<PreferencesCubit>().state;
 
     return MaterialApp(
-      title: 'BLoC Assignment Setup',
+      title: '${AppConstants.appName} setup',
       debugShowCheckedModeBanner: false,
       themeMode: preferences.darkMode ? ThemeMode.dark : ThemeMode.light,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       home: Scaffold(
         appBar: AppBar(title: const Text('Firebase setup required')),
         body: Center(
@@ -94,48 +97,7 @@ class _StartupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Semantics(
-          label: 'Restoring your session',
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      body: AppLoading(label: 'Restoring your session'),
     );
   }
-}
-
-ThemeData _buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF3157D5),
-    brightness: brightness,
-  );
-
-  return ThemeData(
-    colorScheme: scheme,
-    useMaterial3: true,
-    visualDensity: VisualDensity.standard,
-    appBarTheme: const AppBarTheme(centerTitle: false),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.28),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: scheme.outlineVariant),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: scheme.primary, width: 1.6),
-      ),
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: scheme.outlineVariant),
-      ),
-    ),
-  );
 }

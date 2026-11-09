@@ -1,4 +1,5 @@
-# Repository contracts
+# Shared repository adapters
 
-Shared repository contracts belong here. Feature-specific contracts may live
-inside the feature domain layer.
+Reserved for repository implementations genuinely shared between features. Domain contracts belong beside their owning feature's entities.
+
+The current contracts and Firebase adapters live in `lib/features/auth` and `lib/features/records`.

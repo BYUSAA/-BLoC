@@ -1,52 +1,61 @@
 # Implementation and verification status
 
-Last repository review: 9 November 2026.
+Last reviewed: 9 November 2026.
 
-## Implemented in source
+## Implemented in the source tree
 
-- [x] Flutter app entry point with safe Firebase setup fallback.
-- [x] Material 3 light and dark themes.
-- [x] AuthCubit for email/password, Google sign-in, password reset and sign-out flows.
-- [x] Email verification on registration and verification enforcement for password sign-in.
-- [x] PreferencesCubit for three persisted preferences.
-- [x] Domain-level RecordsRepository contract and Firestore implementation.
-- [x] RecordsCubit for live stream state, retry, CRUD orchestration and stream disposal.
-- [x] Firestore owner isolation, field validation and composite query index.
-- [x] Storage rules restricting user-owned files by type and size.
-- [x] Unit tests for RecordsCubit and preference state.
-- [x] Widget test for the records empty state.
-- [x] Integration-test target for the Firebase configuration fallback.
-- [x] GitHub Actions workflow for generated platform scaffolding, formatting, analysis, tests and Android APK build.
+- [x] Flutter entry point with Firebase initialization and an explicit setup fallback.
+- [x] Material 3 light/dark themes and centralized app constants.
+- [x] AuthRepository contract and Firebase Auth/Google Sign-In implementation.
+- [x] Email/password registration, verification enforcement, password reset and sign-out.
+- [x] AuthCubit with busy state, clear feedback and safe user-facing messages.
+- [x] Shared validation functions for email, password, title and description.
+- [x] PreferencesCubit for three locally persisted preferences.
+- [x] Records domain entity and repository contract.
+- [x] Firestore RecordDto and repository implementation.
+- [x] RecordsCubit for live updates, CRUD coordination, retry and stream disposal.
+- [x] Firestore ownership rules, record constraints, server timestamp checks and composite index.
+- [x] Storage rules scoped to user-owned paths with file type/size limits.
+- [x] Unit tests for authentication, preferences, record equality and validation.
+- [x] Widget tests for the sign-in screen and records workspace.
+- [x] Integration-test target for the Firebase setup fallback.
+- [x] Windows PowerShell verification and platform bootstrap scripts.
+- [x] GitHub Actions workflow for platform generation, formatting, analyzer, tests and Android APK packaging.
 
-## Verification that is still required
+## Not yet verified
 
-The repository has been edited through GitHub, but this environment does not have the Flutter/Dart SDK and has not run the app on an Android emulator or phone. Do not report any of the following as passed until a real CI run or local run confirms it:
+The source has been edited through GitHub. This environment does not have the Flutter/Dart SDK or a connected Android emulator, so it has not performed a local Flutter run.
 
-- [ ] Flutter dependency resolution and generated `pubspec.lock`.
-- [ ] Generated Gradle wrapper JAR and complete platform runners.
-- [ ] `dart format` with no pending changes.
-- [ ] `flutter analyze --fatal-infos --fatal-warnings` with zero diagnostics.
+GitHub Actions has created runs, but the latest inspected run failed in the platform-bootstrap job before a runner was assigned; the job contained no executed steps or retrievable logs. That is not evidence of a Dart compile/test failure, and it is not evidence of a successful build either.
+
+The following still require a successful CI or local run:
+
+- [ ] Dependency resolution and a committed pubspec.lock.
+- [ ] Generated Gradle wrapper JAR and full Android/iOS/web/desktop platform scaffolding.
+- [ ] Clean dart format check.
+- [ ] flutter analyze --fatal-infos --fatal-warnings with zero diagnostics.
 - [ ] All unit and widget tests.
+- [ ] Integration test on an Android emulator or phone.
 - [ ] Android release APK build.
 - [ ] Firebase rules deployment and emulator/project security tests.
-- [ ] Google sign-in on the registered Android package.
-- [ ] Device-level CRUD and authentication checks.
-- [ ] At least 70% test coverage target from the assignment.
+- [ ] Email verification and Google sign-in on the registered Android application.
+- [ ] Device CRUD and preference persistence checks.
+- [ ] The assignment's 70% test coverage target.
 
-Check the [GitHub Actions runs](https://github.com/BYUSAA/-BLoC/actions) and fix any failed step before calling the code build-ready.
+Check GitHub Actions for a fresh run once hosted runner access is available.
 
-## Inputs still needed for final assignment alignment
+## Inputs still required
 
-- Approved Figma prototype/export and the actual application problem/domain.
-- Group number and the full list of team members' names and GitHub usernames.
-- Firebase project access/configuration and registered Android app details.
-- Genuine individual branch/commit evidence for every team member.
+- Approved Figma prototype/export and final application problem/domain.
+- Group number and all members' names/GitHub usernames.
+- Firebase project and registered Android app/OAuth configuration.
+- Genuine contribution evidence for each group member.
 
 ## Submission evidence still outstanding
 
-- Final ERD for the approved domain.
-- Updated screenshots from a real Android device.
+- Final domain ERD.
+- Genuine Android screenshots.
 - PDF report with research, design, architecture, data model, tests, collaboration and reflection.
-- 10–15 minute recorded demonstration.
+- 10–15 minute demonstration recording.
 
-The current application is a generic authenticated records workspace. It is not yet the final Figma-matched assignment app.
+The generic Records workspace is not the final Figma-matched assignment app.

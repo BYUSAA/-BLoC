@@ -17,7 +17,6 @@ dependencies:
   cloud_firestore: ^5.5.0
   google_sign_in: ^6.2.2
   shared_preferences: ^2.3.3
-  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +32,4 @@ flutter:
     - assets/icons/
     - assets/animations/
     - assets/documents/
+    - assets/fonts/

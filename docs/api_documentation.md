@@ -1,18 +1,5 @@
-# Firebase API / data contract
+# API documentation
 
-## Authentication
-- Register: Firebase email/password; sends email verification.
-- Login: Firebase email/password.
-- Google: Google provider through Firebase Authentication.
-- Password reset: Firebase password reset email.
-- Logout: Firebase sign-out.
+The active and maintained Firebase schema and operation contract is documented in api-contract.md. The starter uses Firebase Authentication and a Firestore records collection.
 
-## Firestore collection: records
-| Field | Type | Description |
-|---|---|---|
-| ownerId | string | Auth UID that owns the document |
-| title | string | Required, non-empty title |
-| description | string | Optional descriptive text |
-| updatedAt | timestamp | Server update timestamp |
-
-All list queries filter by ownerId. Security rules enforce authenticated ownership.
+This file is retained as a compatibility entry point for existing links. Do not maintain a second, separate field definition here; update api-contract.md and ERD.md when the approved application domain changes.

@@ -1,47 +1,47 @@
 # Firebase data contract
 
-This document describes the generic records starter. Update it when the final Figma-approved application domain is known.
+This contract describes the generic Records workspace. Update it when the approved application domain is available.
 
 ## Firestore collection
 
-Path: `records/{recordId}`
+Path: records/{recordId}
 
-| Field | Type | Constraints | Purpose |
-|---|---|---|---|
-| `title` | string | Required; 1–100 characters | Record title |
-| `description` | string | Required; 0–1,000 characters | Optional details stored as an empty string when omitted |
-| `ownerId` | string | Required; must equal authenticated UID | Record owner |
-| `updatedAt` | timestamp | Required | Sorting and last-update time |
-
-The client creates a UUID document ID and writes `updatedAt` with `FieldValue.serverTimestamp()`. Reads are filtered by `ownerId` and ordered by `updatedAt` descending. The composite index is stored in `firebase/firestore.indexes.json`.
-
-## Operations
-
-| Operation | Client behavior | Security requirement |
+| Field | Type | Requirement |
 |---|---|---|
-| Create | Add title, description, owner UID and server timestamp | Authenticated owner UID must match `request.auth.uid`; document fields and sizes are validated |
-| Read | Listen to the signed-in user's records | Only documents whose `ownerId` matches the caller are readable |
-| Update | Change title/description and update timestamp | Caller must own the existing record and cannot change its owner |
-| Delete | Delete selected record by document ID | Caller must own the existing record |
+| title | string | Required; 1–100 characters |
+| description | string | Required; 0–1,000 characters |
+| ownerId | string | Required; must equal the authenticated Firebase UID |
+| updatedAt | timestamp | Required; must equal the server request time |
+
+The client uses a Firestore-generated document ID and writes updatedAt through FieldValue.serverTimestamp(). Reads filter by ownerId and sort by updatedAt descending. The composite index is stored in firebase/firestore.indexes.json.
+
+## CRUD operations
+
+| Operation | Client behavior | Security rule |
+|---|---|---|
+| Create | Add title, description, owner UID and server timestamp | Caller must be signed in; owner UID, fields, types and lengths are checked |
+| Read | Subscribe to the signed-in user's records | Only documents owned by the caller can be read |
+| Update | Change title/description and server timestamp | Caller must own the existing record; owner cannot change |
+| Delete | Delete a selected record | Caller must own the existing record |
 
 ## Authentication
 
-- Email/password registration sends a verification email and signs out the new account until verification is completed.
-- Password sign-in sends another verification email and refuses access when the email remains unverified.
-- Google sign-in uses Firebase Auth credentials from Google Sign-In.
-- Password reset uses Firebase Auth's reset-email flow.
-- Client navigation is not a security boundary; Firestore rules remain authoritative.
+- Email/password registration sends an email verification link and clears the initial session.
+- Password sign-in refuses unverified password accounts and triggers another verification email.
+- Google sign-in uses a Google credential with Firebase Authentication.
+- Password reset uses Firebase Auth's email reset flow.
+- Sign-out clears the Google Sign-In session and Firebase Auth session.
 
-## Storage path
+## Storage
 
-User files, if added by the final product, must be stored beneath:
+User-owned files, if added to the approved product, must be stored beneath:
 
-```text
+~~~text
 users/{userId}/{allPaths}
-```
+~~~
 
-Storage rules allow access only to the matching authenticated UID. Create/update uploads are limited to less than 5 MiB and image JPEG/PNG/WebP or PDF MIME types. The current records UI does not implement an upload screen.
+Storage rules require the authenticated UID to match the path UID. Create/update are limited to files smaller than 5 MiB and MIME types image/jpeg, image/png, image/webp or application/pdf. The present Records UI does not include a file upload screen.
 
-## Data integrity notes
+## Security notes
 
-The app validates input before sending writes. The Firebase rules independently validate owner, field names, data types and title/description lengths. Firebase rules are not a substitute for server-side validation in any future trusted backend.
+The repository validates writes before sending them. Firestore rules independently validate ownership, field names, types, lengths and the server timestamp. Do not rely on client-side validation as the security boundary.

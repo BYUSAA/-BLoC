@@ -1,9 +1,11 @@
+import '../../../app/constants/app_constants.dart';
 import 'record.dart';
 
 /// Contract for reading and mutating the signed-in user's records.
 abstract interface class RecordsRepository {
-  static const int maxTitleLength = 100;
-  static const int maxDescriptionLength = 1000;
+  static const int maxTitleLength = AppConstants.maxRecordTitleLength;
+  static const int maxDescriptionLength =
+      AppConstants.maxRecordDescriptionLength;
 
   Stream<List<Record>> watchRecords();
 

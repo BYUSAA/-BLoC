@@ -2,39 +2,36 @@
 
 ## Requirements
 
-- Flutter stable with its matching Dart SDK.
-- Android Studio, Android SDK and Android emulator or physical Android device.
+- Flutter 3.47.2 with its bundled Dart SDK (the package supports Flutter 3.27+ and Dart 3.6+).
+- Android Studio, Android SDK, and an Android emulator or physical Android device.
 - Firebase project with Email/Password and Google Authentication enabled, plus Cloud Firestore.
-- Google OAuth web/server client ID for Google sign-in.
+- Google OAuth web/server client ID for Google Sign-In.
 
 ## 1. Resolve dependencies
 
-From the repository root in Android Studio's terminal or PowerShell:
+Open the repository root in Android Studio. Run in its terminal or PowerShell:
 
-```powershell
+~~~powershell
 flutter pub get
 flutter doctor
 flutter devices
-```
+~~~
 
-The CI workflow generates any missing native project scaffolding and the dependency lockfile. To generate locally when needed:
+When native project scaffolding is incomplete, run:
 
-```powershell
-flutter create --overwrite --project-name=bloc_assignment_app --platforms=android,ios,web,windows,linux,macos .
-flutter pub get
-```
+~~~powershell
+.\tooling\scripts\bootstrap-platforms.ps1
+~~~
 
-Flutter generates native IDE projects, plugin registrants and Gradle wrapper files. iOS/macOS require macOS and Xcode; Windows desktop builds require Visual Studio C++ tools. Android is the primary assignment run target.
+To deliberately remove and regenerate all native platform folders, use the script's -Force switch. It requires typed confirmation before deleting anything. Flutter generates platform project files and the Gradle wrapper. iOS/macOS builds require macOS and Xcode; Windows desktop builds require Visual Studio C++ tools. Android is the assignment's primary run target.
 
 ## 2. Configure Firebase
 
-Create a Firebase project, register the Android app with application ID `com.example.bloc_assignment_app`, and enable Email/Password and Google providers under Authentication. Create the Cloud Firestore database.
+Create a Firebase project, register Android package com.example.bloc_assignment_app, enable Email/Password and Google sign-in in Authentication, and create a Cloud Firestore database.
 
-For Google sign-in, add the Android SHA-1 and SHA-256 fingerprints to the Firebase Android app and use the OAuth web/server client ID for the Dart define.
+Create an untracked firebase.local.json in the project root:
 
-Create `firebase.local.json` in the repository root (it is ignored by Git):
-
-```json
+~~~json
 {
   "FIREBASE_API_KEY": "your-firebase-api-key",
   "FIREBASE_APP_ID": "your-firebase-app-id",
@@ -44,43 +41,47 @@ Create `firebase.local.json` in the repository root (it is ignored by Git):
   "FIREBASE_STORAGE_BUCKET": "your-project.firebasestorage.app",
   "GOOGLE_SERVER_CLIENT_ID": "your-google-web-client-id"
 }
-```
+~~~
 
-Run the app:
+The file is ignored by Git. Never commit Firebase service-account private keys, OAuth secrets, Android signing keystores or passwords.
 
-```powershell
+For Google Sign-In, add the Android SHA-1 and SHA-256 fingerprints to the Firebase app and use the OAuth web/server client ID as GOOGLE_SERVER_CLIENT_ID.
+
+Start on an Android emulator or connected Android phone:
+
+~~~powershell
 flutter run --dart-define-from-file=firebase.local.json
-```
+~~~
 
-The four required values are API key, app ID, messaging sender ID and project ID. Auth domain, Storage bucket and Google server client ID are optional at compile time, but Google sign-in requires the correct native/OAuth configuration.
-
-Without Firebase options, the app intentionally displays the setup screen. Cloud authentication and CRUD are unavailable until Firebase is configured.
+Without the four required Firebase values (API key, app ID, sender ID and project ID), the app opens the Firebase setup screen. Authentication and Firestore operations are unavailable until Firebase is configured.
 
 ## 3. Deploy Firebase rules and indexes
 
-Install and authenticate with the Firebase CLI, select the correct project, then:
+Install the Firebase CLI, authenticate and select the intended project:
 
-```powershell
+~~~powershell
 firebase use YOUR_FIREBASE_PROJECT_ID
 firebase deploy --only firestore:rules,firestore:indexes,storage
-```
+~~~
 
-Review and test the rules against your project before using real data.
+Review and test the rules against a non-production or emulator project before using real user data.
 
-## 4. Validate and run on Android
+## 4. Run quality checks
 
-```powershell
-dart format .
-flutter analyze --fatal-infos --fatal-warnings
-flutter test --coverage
-flutter devices
-flutter run --dart-define-from-file=firebase.local.json
-```
+~~~powershell
+.\tooling\scripts\verify.ps1
+~~~
 
-For a release package:
+The script performs package resolution, formatting validation, static analysis, unit/widget tests with coverage and Android release packaging. To skip only APK packaging:
 
-```powershell
-flutter build apk --release --dart-define-from-file=firebase.local.json
-```
+~~~powershell
+.\tooling\scripts\verify.ps1 -SkipBuild
+~~~
 
-Do not commit `firebase.local.json`, service-account keys, signing passwords or other private credentials.
+Run the integration test on a connected Android device:
+
+~~~powershell
+flutter test integration_test/app_test.dart -d <android-device-id>
+~~~
+
+Do not claim zero warnings or a successful build until these commands or an equivalent successful CI run confirm it.

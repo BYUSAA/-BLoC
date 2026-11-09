@@ -1,3 +1,4 @@
+import 'package:bloc_assignment_app/features/auth/domain/auth_exception.dart';
 import 'package:bloc_assignment_app/features/auth/domain/auth_repository.dart';
 import 'package:bloc_assignment_app/features/auth/presentation/auth_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,7 @@ class _FakeAuthRepository implements AuthRepository {
   bool verificationRequired = false;
   bool googleResult = false;
   bool shouldFail = false;
+  String? resetEmail;
 
   @override
   bool get hasActiveSession => activeSession;
@@ -16,7 +18,12 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signIn(String email, String password) async {
-    if (shouldFail) throw StateError('sign-in failed');
+    if (shouldFail) {
+      throw const AuthException(
+        code: 'invalid-credential',
+        message: 'The email or password is incorrect.',
+      );
+    }
     activeSession = true;
   }
 
@@ -35,6 +42,7 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> sendPasswordReset(String email) async {
     if (shouldFail) throw StateError('reset failed');
+    resetEmail = email;
   }
 
   @override
@@ -62,6 +70,7 @@ void main() {
     await cubit.restoreSession();
 
     expect(cubit.state.status, AuthStatus.authenticated);
+    expect(cubit.state.isBusy, isFalse);
   });
 
   test('does not restore an unverified password session', () async {
@@ -80,6 +89,7 @@ void main() {
 
     expect(cubit.state.status, AuthStatus.unauthenticated);
     expect(cubit.state.error, isNull);
+    expect(cubit.state.isBusy, isFalse);
   });
 
   test('successful Google sign-in authenticates the user', () async {
@@ -88,6 +98,7 @@ void main() {
     await cubit.googleSignIn();
 
     expect(cubit.state.status, AuthStatus.authenticated);
+    expect(cubit.state.isBusy, isFalse);
   });
 
   test('registration displays the email verification instruction', () async {
@@ -99,15 +110,19 @@ void main() {
 
     expect(cubit.state.status, AuthStatus.unauthenticated);
     expect(cubit.state.notice, contains('verification link'));
+    expect(cubit.state.isBusy, isFalse);
   });
 
   test('password reset displays a confirmation notice', () async {
     await cubit.resetPassword('person@example.com');
 
+    expect(repository.resetEmail, 'person@example.com');
     expect(cubit.state.notice, contains('reset instructions'));
+    expect(cubit.state.isBusy, isFalse);
   });
 
-  test('failed password reset clears stale notices and exposes an error', () async {
+  test('failed password reset clears stale notices and exposes an error',
+      () async {
     await cubit.resetPassword('person@example.com');
     expect(cubit.state.notice, isNotNull);
 
@@ -117,19 +132,34 @@ void main() {
     expect(cubit.state.status, AuthStatus.unauthenticated);
     expect(cubit.state.notice, isNull);
     expect(cubit.state.error, isNotNull);
+    expect(cubit.state.isBusy, isFalse);
   });
 
-  test('repository errors become safe user-facing errors', () async {
+  test('auth exceptions retain their safe user-facing message', () async {
     repository.shouldFail = true;
 
     await cubit.submit(
       'person@example.com',
-      'password123',
+      'incorrect',
       register: false,
     );
 
     expect(cubit.state.status, AuthStatus.unauthenticated);
-    expect(cubit.state.error, isNotNull);
-    expect(cubit.state.error, isNot(contains('sign-in failed')));
+    expect(cubit.state.error, 'The email or password is incorrect.');
+    expect(cubit.state.isBusy, isFalse);
+  });
+
+  test('clearFeedback removes both error and notice', () async {
+    await cubit.submit(
+      'person@example.com',
+      'password123',
+      register: true,
+    );
+    expect(cubit.state.notice, isNotNull);
+
+    cubit.clearFeedback();
+
+    expect(cubit.state.notice, isNull);
+    expect(cubit.state.error, isNull);
   });
 }

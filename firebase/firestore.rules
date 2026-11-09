@@ -7,11 +7,18 @@ service cloud.firestore {
     }
 
     function ownsExistingRecord() {
-      return isSignedIn() && resource.data.ownerId == request.auth.uid;
+      return isSignedIn()
+        && resource.data.ownerId == request.auth.uid;
     }
 
-    function hasValidRecordData() {
-      return request.resource.data.keys().hasOnly([
+    function hasValidRecordShape() {
+      return request.resource.data.keys().hasAll([
+          'title',
+          'description',
+          'ownerId',
+          'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
           'title',
           'description',
           'ownerId',
@@ -22,6 +29,7 @@ service cloud.firestore {
         && request.resource.data.title.size() <= 100
         && request.resource.data.description is string
         && request.resource.data.description.size() <= 1000
+        && request.resource.data.ownerId is string
         && request.resource.data.updatedAt is timestamp
         && request.resource.data.updatedAt == request.time;
     }
@@ -31,12 +39,12 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.resource.data.ownerId == request.auth.uid
-        && hasValidRecordData();
+        && hasValidRecordShape();
 
       allow update: if ownsExistingRecord()
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.ownerId == request.auth.uid
-        && hasValidRecordData();
+        && hasValidRecordShape();
 
       allow delete: if ownsExistingRecord();
     }

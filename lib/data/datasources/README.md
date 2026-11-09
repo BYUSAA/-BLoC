@@ -1,5 +1,5 @@
-# Data sources
+# Shared data sources
 
-Firebase Authentication and Cloud Firestore adapters currently live under
-feature-specific data folders. Keep external SDK calls behind repositories
-and data-source adapters as the application grows.
+Reserved for data sources genuinely shared across features. Keep feature-specific sources beside their feature repositories so ownership remains clear.
+
+The current Authentication and Records implementations live under `lib/features`.

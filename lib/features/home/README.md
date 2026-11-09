@@ -1,4 +1,3 @@
-# Home feature
+# Home feature extension point
 
-Home/dashboard feature boundary. Add presentation, domain and data subfolders
-when the approved Figma flow and requirements are supplied.
+The final dashboard screens must be based on the approved Figma prototype and assignment domain. The current authenticated landing workspace is `lib/features/records/presentation/records_page.dart` and is a generic CRUD example, not the final home design.

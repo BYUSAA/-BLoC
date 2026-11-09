@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/validators.dart';
 import 'auth_cubit.dart';
-
-class _EmailValidation {
-  static final RegExp _pattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-
-  static bool isValid(String value) => _pattern.hasMatch(value.trim());
-}
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -17,8 +12,8 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final _email = TextEditingController();
-  final _password = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _registering = false;
@@ -26,8 +21,8 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   void dispose() {
-    _email.dispose();
-    _password.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -35,21 +30,27 @@ class _SignInPageState extends State<SignInPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     context.read<AuthCubit>().submit(
-          _email.text,
-          _password.text,
+          _emailController.text,
+          _passwordController.text,
           register: _registering,
         );
   }
 
   void _resetPassword() {
-    if (!_EmailValidation.isValid(_email.text)) {
+    if (Validators.email(_emailController.text) != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter a valid email address first.')),
       );
       return;
     }
 
-    context.read<AuthCubit>().resetPassword(_email.text);
+    context.read<AuthCubit>().resetPassword(_emailController.text);
+  }
+
+  void _toggleMode() {
+    setState(() => _registering = !_registering);
+    context.read<AuthCubit>().clearFeedback();
+    _formKey.currentState?.reset();
   }
 
   @override
@@ -61,140 +62,122 @@ class _SignInPageState extends State<SignInPage> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: BlocBuilder<AuthCubit, AuthState>(
-                  builder: (context, state) {
-                    final isLoading = state.status == AuthStatus.loading;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Icon(
-                          Icons.dashboard_customize_outlined,
-                          size: 56,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          _registering
-                              ? 'Create your account'
-                              : 'Welcome back',
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text('Sign in to manage your workspace.'),
-                        const SizedBox(height: 28),
-                        TextFormField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.email],
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (value) => _EmailValidation.isValid(
-                            value ?? '',
-                          )
-                              ? null
-                              : 'Enter a valid email address.',
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _password,
-                          obscureText: _obscurePassword,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: _registering
-                              ? const [AutofillHints.newPassword]
-                              : const [AutofillHints.password],
-                          onFieldSubmitted: (_) => _submit(),
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            border: const OutlineInputBorder(),
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              tooltip: _obscurePassword
-                                  ? 'Show password'
-                                  : 'Hide password',
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if ((value?.length ?? 0) < 6) {
-                              return 'Use at least 6 characters.';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        FilledButton(
-                          onPressed: isLoading ? null : _submit,
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  _registering
-                                      ? 'Create account'
-                                      : 'Sign in',
-                                ),
-                        ),
-                        const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: isLoading
-                              ? null
-                              : () => context.read<AuthCubit>().googleSignIn(),
-                          icon: const Icon(Icons.login),
-                          label: const Text('Continue with Google'),
-                        ),
-                        if (state.error != null) ...[
-                          const SizedBox(height: 12),
-                          _MessagePanel(
-                            message: state.error!,
-                            isError: true,
-                          ),
-                        ],
-                        if (state.notice != null) ...[
-                          const SizedBox(height: 12),
-                          _MessagePanel(message: state.notice!),
-                        ],
-                        TextButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => setState(
-                                    () => _registering = !_registering,
-                                  ),
-                          child: Text(
-                            _registering
-                                ? 'Already registered? Sign in'
-                                : 'New here? Create an account',
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: isLoading ? null : _resetPassword,
-                          child: const Text('Forgot password?'),
-                        ),
-                      ],
-                    );
-                  },
+              child: AutofillGroup(
+                child: Form(
+                  key: _formKey,
+                  child: BlocBuilder<AuthCubit, AuthState>(
+                    builder: (context, state) {
+                      return _buildForm(context, state);
+                    },
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildForm(BuildContext context, AuthState state) {
+    final isBusy = state.isBusy;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Icon(Icons.dashboard_customize_outlined, size: 56),
+        const SizedBox(height: 20),
+        Text(
+          _registering ? 'Create your account' : 'Welcome back',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _registering
+              ? 'Create an account to get started.'
+              : 'Sign in to manage your workspace.',
+        ),
+        const SizedBox(height: 28),
+        TextFormField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          autocorrect: false,
+          enabled: !isBusy,
+          decoration: const InputDecoration(
+            labelText: 'Email',
+            prefixIcon: Icon(Icons.email_outlined),
+          ),
+          validator: Validators.email,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.done,
+          autofillHints: _registering
+              ? const [AutofillHints.newPassword]
+              : const [AutofillHints.password],
+          onFieldSubmitted: (_) => _submit(),
+          enabled: !isBusy,
+          decoration: InputDecoration(
+            labelText: 'Password',
+            prefixIcon: const Icon(Icons.lock_outline),
+            suffixIcon: IconButton(
+              tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+              onPressed: isBusy
+                  ? null
+                  : () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
+            ),
+          ),
+          validator: Validators.password,
+        ),
+        const SizedBox(height: 20),
+        FilledButton(
+          onPressed: isBusy ? null : _submit,
+          child: isBusy
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(_registering ? 'Create account' : 'Sign in'),
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed:
+              isBusy ? null : () => context.read<AuthCubit>().googleSignIn(),
+          icon: const Icon(Icons.login),
+          label: const Text('Continue with Google'),
+        ),
+        if (state.error != null) ...[
+          const SizedBox(height: 12),
+          _MessagePanel(message: state.error!, isError: true),
+        ],
+        if (state.notice != null) ...[
+          const SizedBox(height: 12),
+          _MessagePanel(message: state.notice!),
+        ],
+        TextButton(
+          onPressed: isBusy ? null : _toggleMode,
+          child: Text(
+            _registering
+                ? 'Already registered? Sign in'
+                : 'New here? Create an account',
+          ),
+        ),
+        TextButton(
+          onPressed: isBusy ? null : _resetPassword,
+          child: const Text('Forgot password?'),
+        ),
+      ],
     );
   }
 }
@@ -222,10 +205,7 @@ class _MessagePanel extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        message,
-        style: TextStyle(color: foreground),
-      ),
+      child: Text(message, style: TextStyle(color: foreground)),
     );
   }
 }

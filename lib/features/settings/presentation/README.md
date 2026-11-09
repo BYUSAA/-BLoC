@@ -1,3 +1,3 @@
 # Settings presentation
 
-Preferences are currently exposed through a settings bottom sheet and PreferencesCubit.
+The current settings UI is a workspace bottom sheet that edits persistent PreferencesCubit values. Replace or expand it to match the approved Figma flow; do not create a second preference store.

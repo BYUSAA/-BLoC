@@ -1,3 +1,3 @@
-# Profile presentation
+# Profile presentation extension point
 
-Reserved for profile UI after the required profile fields and access rules are confirmed.
+Reserved for the approved profile screens. Keep profile data access in a profile data repository and profile state in a Cubit/BLoC.

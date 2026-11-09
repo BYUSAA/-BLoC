@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:uuid/uuid.dart';
 
+import '../../../app/constants/app_constants.dart';
+import '../../../core/errors/app_exception.dart';
 import '../domain/record.dart';
 import '../domain/records_repository.dart';
+import 'record_dto.dart';
 
 class RecordsRepositoryImpl implements RecordsRepository {
   RecordsRepositoryImpl({
@@ -16,39 +18,33 @@ class RecordsRepositoryImpl implements RecordsRepository {
   final FirebaseAuth _auth;
 
   CollectionReference<Map<String, dynamic>> get _collection =>
-      _firestore.collection('records');
+      _firestore.collection(AppConstants.recordsCollection);
 
-  String get _userId {
+  String _requireUserId() {
     final user = _auth.currentUser;
     if (user == null) {
-      throw StateError('A signed-in user is required to access records.');
+      throw const AppException(
+        code: 'not-authenticated',
+        message: 'Sign in before accessing records.',
+      );
     }
     return user.uid;
   }
 
   @override
   Stream<List<Record>> watchRecords() {
-    final userId = _userId;
+    final userId = _requireUserId();
+
     return _collection
         .where('ownerId', isEqualTo: userId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((document) {
-                final data = document.data();
-                final timestamp = data['updatedAt'];
-                return Record(
-                  id: document.id,
-                  title: data['title'] as String? ?? '',
-                  description: data['description'] as String? ?? '',
-                  ownerId: data['ownerId'] as String? ?? '',
-                  updatedAt: timestamp is Timestamp
-                      ? timestamp.toDate()
-                      : DateTime.fromMillisecondsSinceEpoch(0),
-                );
-              })
-              .toList(growable: false),
+          (snapshot) => List<Record>.unmodifiable(
+            snapshot.docs.map(
+              (document) => RecordDto.fromDocument(document).toDomain(),
+            ),
+          ),
         );
   }
 
@@ -57,12 +53,12 @@ class RecordsRepositoryImpl implements RecordsRepository {
     required String title,
     required String description,
   }) async {
-    final normalizedTitle = _validateTitle(title);
-    final normalizedDescription = _validateDescription(description);
-    await _collection.doc(const Uuid().v4()).set({
-      'title': normalizedTitle,
-      'description': normalizedDescription,
-      'ownerId': _userId,
+    final ownerId = _requireUserId();
+
+    await _collection.doc().set({
+      'title': _validateTitle(title),
+      'description': _validateDescription(description),
+      'ownerId': ownerId,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
@@ -73,30 +69,50 @@ class RecordsRepositoryImpl implements RecordsRepository {
     required String title,
     required String description,
   }) async {
-    final normalizedTitle = _validateTitle(title);
-    final normalizedDescription = _validateDescription(description);
+    final ownerId = _requireUserId();
+
+    if (record.ownerId != ownerId) {
+      throw const AppException(
+        code: 'record-not-owned',
+        message: 'You do not have permission to change this record.',
+      );
+    }
+
+    if (record.id.trim().isEmpty) {
+      throw const AppException(
+        code: 'invalid-record-id',
+        message: 'The record identifier is invalid.',
+      );
+    }
+
     await _collection.doc(record.id).update({
-      'title': normalizedTitle,
-      'description': normalizedDescription,
+      'title': _validateTitle(title),
+      'description': _validateDescription(description),
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   @override
   Future<void> delete(String id) async {
+    _requireUserId();
+
     if (id.trim().isEmpty) {
-      throw ArgumentError.value(id, 'id', 'Record ID cannot be empty.');
+      throw const AppException(
+        code: 'invalid-record-id',
+        message: 'The record identifier is invalid.',
+      );
     }
+
     await _collection.doc(id).delete();
   }
 
   String _validateTitle(String value) {
     final title = value.trim();
-    if (title.isEmpty || title.length > RecordsRepository.maxTitleLength) {
-      throw ArgumentError.value(
-        value,
-        'title',
-        'Title must contain 1 to ${RecordsRepository.maxTitleLength} characters.',
+    if (title.isEmpty || title.length > AppConstants.maxRecordTitleLength) {
+      throw AppException(
+        code: 'invalid-record-title',
+        message:
+            'A record title must contain 1 to ${AppConstants.maxRecordTitleLength} characters.',
       );
     }
     return title;
@@ -104,11 +120,11 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
   String _validateDescription(String value) {
     final description = value.trim();
-    if (description.length > RecordsRepository.maxDescriptionLength) {
-      throw ArgumentError.value(
-        value,
-        'description',
-        'Description cannot exceed ${RecordsRepository.maxDescriptionLength} characters.',
+    if (description.length > AppConstants.maxRecordDescriptionLength) {
+      throw AppException(
+        code: 'invalid-record-description',
+        message:
+            'A record description cannot exceed ${AppConstants.maxRecordDescriptionLength} characters.',
       );
     }
     return description;

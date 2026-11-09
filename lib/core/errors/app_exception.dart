@@ -1,6 +1,15 @@
+/// A safe, user-facing application error.
 class AppException implements Exception {
-  const AppException(this.message);
+  const AppException({
+    required this.code,
+    required this.message,
+    this.cause,
+  });
+
+  final String code;
   final String message;
+  final Object? cause;
+
   @override
-  String toString() => message;
+  String toString() => 'AppException($code): $message';
 }

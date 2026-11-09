@@ -7,13 +7,16 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: flutter-ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   bootstrap:
-    name: Generate and format project files
+    name: Generate native Flutter projects and lockfile
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -40,45 +43,43 @@ jobs:
           flutter-version: '3.47.2'
           cache: true
 
-      - name: Generate complete Flutter platform projects when incomplete
+      - name: Generate missing native project scaffolding
         shell: bash
         run: |
           if [[ ! -f android/gradle/wrapper/gradle-wrapper.jar ]] || \
-             [[ ! -d ios/Runner.xcodeproj ]] || \
-             [[ ! -d macos/Runner.xcodeproj ]] || \
-             [[ ! -d windows/runner ]] || \
-             [[ ! -d linux/runner ]]; then
+             [[ ! -f ios/Runner.xcodeproj/project.pbxproj ]] || \
+             [[ ! -f macos/Runner.xcodeproj/project.pbxproj ]] || \
+             [[ ! -f windows/runner/CMakeLists.txt ]] || \
+             [[ ! -f linux/runner/CMakeLists.txt ]]; then
             rm -rf android ios web windows linux macos
             flutter create \
               --project-name=bloc_assignment_app \
               --platforms=android,ios,web,windows,linux,macos .
           fi
 
-      - name: Resolve packages and generate pubspec.lock
+      - name: Resolve dependencies and create pubspec.lock
         run: flutter pub get
 
-      - name: Format all Dart sources
+      - name: Format all Dart files
         run: dart format .
 
-      - name: Commit generated files and formatting
+      - name: Commit generated scaffolding and lockfile
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "chore: generate Flutter scaffolding and format sources"
+            git commit -m "chore: generate Flutter platform projects and lock dependencies [skip ci]"
             git push origin main
           fi
 
   verify:
-    name: Analyze, test and build Android
+    name: Format, analyze, test and build Android
     needs: bootstrap
     if: always() && (needs.bootstrap.result == 'success' || needs.bootstrap.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
+    timeout-minutes: 40
 
     steps:
       - name: Check out source
@@ -98,14 +99,14 @@ jobs:
           flutter-version: '3.47.2'
           cache: true
 
-      - name: Generate platform projects in the validation workspace when needed
+      - name: Generate native projects in the validation workspace when needed
         shell: bash
         run: |
           if [[ ! -f android/gradle/wrapper/gradle-wrapper.jar ]] || \
-             [[ ! -d ios/Runner.xcodeproj ]] || \
-             [[ ! -d macos/Runner.xcodeproj ]] || \
-             [[ ! -d windows/runner ]] || \
-             [[ ! -d linux/runner ]]; then
+             [[ ! -f ios/Runner.xcodeproj/project.pbxproj ]] || \
+             [[ ! -f macos/Runner.xcodeproj/project.pbxproj ]] || \
+             [[ ! -f windows/runner/CMakeLists.txt ]] || \
+             [[ ! -f linux/runner/CMakeLists.txt ]]; then
             rm -rf android ios web windows linux macos
             flutter create \
               --project-name=bloc_assignment_app \
@@ -123,6 +124,15 @@ jobs:
 
       - name: Run unit and widget tests
         run: flutter test --coverage
+
+      - name: Run integration test on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          script: flutter test integration_test/app_test.dart -d emulator-5554
 
       - name: Build Android release APK
         run: flutter build apk --release

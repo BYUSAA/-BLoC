@@ -1,3 +1,5 @@
 # Shared models
 
-Place only genuinely cross-feature value objects and models here.
+Place only value objects used by multiple features here. Keep feature-owned domain entities inside their feature domain folder.
+
+The current Record entity is owned by `lib/features/records/domain`.

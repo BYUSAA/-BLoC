@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/preferences/preferences_cubit.dart';
+import '../../../core/utils/validators.dart';
+import '../../../core/widgets/app_loading.dart';
 import '../../auth/presentation/auth_cubit.dart';
 import '../domain/record.dart';
 import '../domain/records_repository.dart';
@@ -46,27 +48,14 @@ class _RecordsView extends StatelessWidget {
                   autofocus: true,
                   maxLength: RecordsRepository.maxTitleLength,
                   decoration: const InputDecoration(labelText: 'Title'),
-                  validator: (value) {
-                    final title = value?.trim() ?? '';
-                    if (title.isEmpty) return 'Title is required.';
-                    if (title.length > RecordsRepository.maxTitleLength) {
-                      return 'Title is too long.';
-                    }
-                    return null;
-                  },
+                  validator: Validators.recordTitle,
                 ),
                 TextFormField(
                   controller: descriptionController,
                   maxLength: RecordsRepository.maxDescriptionLength,
                   maxLines: 3,
                   decoration: const InputDecoration(labelText: 'Description'),
-                  validator: (value) {
-                    if ((value?.length ?? 0) >
-                        RecordsRepository.maxDescriptionLength) {
-                      return 'Description is too long.';
-                    }
-                    return null;
-                  },
+                  validator: Validators.recordDescription,
                 ),
               ],
             ),
@@ -137,16 +126,30 @@ class _RecordsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final preferences = context.watch<PreferencesCubit>().state;
 
-    return BlocListener<RecordsCubit, RecordsState>(
-      listenWhen: (previous, current) =>
-          previous.errorMessage != current.errorMessage &&
-          current.errorMessage != null,
-      listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.errorMessage!)),
-        );
-        context.read<RecordsCubit>().clearError();
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<RecordsCubit, RecordsState>(
+          listenWhen: (previous, current) =>
+              previous.errorMessage != current.errorMessage &&
+              current.errorMessage != null,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage!)),
+            );
+            context.read<RecordsCubit>().clearError();
+          },
+        ),
+        BlocListener<AuthCubit, AuthState>(
+          listenWhen: (previous, current) =>
+              previous.error != current.error && current.error != null,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error!)),
+            );
+            context.read<AuthCubit>().clearFeedback();
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('My workspace'),
@@ -166,16 +169,18 @@ class _RecordsView extends StatelessWidget {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _edit(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Add record'),
+        floatingActionButton: BlocBuilder<RecordsCubit, RecordsState>(
+          builder: (context, state) => FloatingActionButton.extended(
+            onPressed: state.isMutating ? null : () => _edit(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Add record'),
+          ),
         ),
         body: BlocBuilder<RecordsCubit, RecordsState>(
           builder: (context, state) {
             if (state.status == RecordsStatus.initial ||
                 state.status == RecordsStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
+              return const AppLoading(label: 'Loading records');
             }
 
             if (state.status == RecordsStatus.failure) {
@@ -187,7 +192,10 @@ class _RecordsView extends StatelessWidget {
                     children: [
                       const Icon(Icons.cloud_off_outlined, size: 44),
                       const SizedBox(height: 12),
-                      const Text('Your records could not be loaded.'),
+                      const Text(
+                        'Your records could not be loaded.',
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 12),
                       FilledButton.tonal(
                         onPressed: context.read<RecordsCubit>().watch,
@@ -199,42 +207,52 @@ class _RecordsView extends StatelessWidget {
               );
             }
 
-            if (state.records.isEmpty) {
-              return const RecordsEmptyState();
-            }
-
-            return ListView.separated(
-              padding: EdgeInsets.all(preferences.compactLayout ? 12 : 20),
-              itemCount: state.records.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final record = state.records[index];
-                return Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: ListTile(
-                    title: Text(
-                      record.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      record.description.isEmpty
-                          ? 'No description'
-                          : record.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () => _edit(context, record),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Delete record',
-                      onPressed: state.isMutating
-                          ? null
-                          : () => _delete(context, record),
-                    ),
-                  ),
-                );
-              },
+            return Column(
+              children: [
+                if (state.isMutating) const LinearProgressIndicator(),
+                Expanded(
+                  child: state.records.isEmpty
+                      ? const RecordsEmptyState()
+                      : ListView.separated(
+                          padding: EdgeInsets.all(
+                            preferences.compactLayout ? 12 : 20,
+                          ),
+                          itemCount: state.records.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final record = state.records[index];
+                            return Card(
+                              clipBehavior: Clip.antiAlias,
+                              child: ListTile(
+                                title: Text(
+                                  record.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  record.description.isEmpty
+                                      ? 'No description'
+                                      : record.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onTap: state.isMutating
+                                    ? null
+                                    : () => _edit(context, record),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: 'Delete record',
+                                  onPressed: state.isMutating
+                                      ? null
+                                      : () => _delete(context, record),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
             );
           },
         ),
@@ -261,7 +279,7 @@ class _PreferencesSheet extends StatelessWidget {
                 onChanged: context.read<PreferencesCubit>().setDarkMode,
               ),
               SwitchListTile(
-                title: const Text('Notifications enabled'),
+                title: const Text('Notifications preference'),
                 value: state.notificationsEnabled,
                 onChanged: context.read<PreferencesCubit>().setNotifications,
               ),

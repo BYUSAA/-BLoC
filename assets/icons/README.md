@@ -1,7 +1,5 @@
 # Icon assets
 
-Store custom application icons here when a suitable Material icon is not available.
+Use Flutter Material icons for common interface actions. Store custom branded SVG or PNG icons here only when the design requires them.
 
-Prefer Flutter's Material icon set for common actions. Keep custom icons consistent in dimensions and style, use descriptive filenames and register image assets in pubspec.yaml.
-
-Do not duplicate built-in icons as image files or add third-party icons without an appropriate licence.
+Keep dimensions and naming consistent, register assets in `pubspec.yaml`, and check third-party icon licences before redistribution.

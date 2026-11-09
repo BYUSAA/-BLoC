@@ -1,4 +1,5 @@
-# Flutter iOS generated settings
+# iOS Flutter build settings
 
-Generated.xcconfig, ephemeral files and plugin registrants are created by
-`flutter pub get` / `flutter create --platforms=ios .` on macOS.
+Flutter generates `Generated.xcconfig`, plugin registrants and build environment files in this folder. They are derived files and are ignored by Git where appropriate.
+
+Regenerate with `flutter pub get` on a supported Flutter installation. iOS compilation and CocoaPods installation require macOS and Xcode; Android CI does not validate an iOS build.

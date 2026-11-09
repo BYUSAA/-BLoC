@@ -1,4 +1,3 @@
-# Profile feature
+# Profile feature extension point
 
-Profile feature boundary. Add user profile entities and CRUD after confirming
-the required profile fields and data ownership rules.
+No profile entity or profile screen has been specified in the provided project brief materials. Add profile domain fields, repository operations and screens only after the approved requirements establish their content and ownership rules.

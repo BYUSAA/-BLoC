@@ -1,4 +1,5 @@
 # Core services
 
-Place application-wide service abstractions here. Firebase SDK usage should
-remain behind feature repositories or dedicated service adapters.
+Place cross-feature infrastructure services here when more than one feature needs them. Examples include secure device services or application-wide notification adapters.
+
+Feature-owned data access should remain inside its feature data layer. Avoid service locators and global singletons without a clear lifecycle and test strategy.

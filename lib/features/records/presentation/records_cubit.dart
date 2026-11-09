@@ -40,7 +40,7 @@ class RecordsState extends Equatable {
   List<Object?> get props => [status, records, errorMessage, isMutating];
 }
 
-/// Owns the records stream and mutations used by the workspace screen.
+/// Owns the live record stream and all record mutations for the UI.
 class RecordsCubit extends Cubit<RecordsState> {
   RecordsCubit(this._repository) : super(const RecordsState());
 
@@ -51,10 +51,10 @@ class RecordsCubit extends Cubit<RecordsState> {
   void watch() {
     if (isClosed || _isWatching) return;
     _isWatching = true;
-    unawaited(_restartWatch());
+    unawaited(_startWatching());
   }
 
-  Future<void> _restartWatch() async {
+  Future<void> _startWatching() async {
     try {
       await _subscription?.cancel();
       if (isClosed) {
@@ -70,14 +70,18 @@ class RecordsCubit extends Cubit<RecordsState> {
       );
 
       _subscription = _repository.watchRecords().listen(
-        (records) => emit(
-          state.copyWith(
-            status: RecordsStatus.loaded,
-            records: List<Record>.unmodifiable(records),
-            clearError: true,
-          ),
-        ),
+        (records) {
+          if (isClosed) return;
+          emit(
+            state.copyWith(
+              status: RecordsStatus.loaded,
+              records: List<Record>.unmodifiable(records),
+              clearError: true,
+            ),
+          );
+        },
         onError: (Object _) {
+          if (isClosed) return;
           _isWatching = false;
           emit(
             state.copyWith(
@@ -85,16 +89,32 @@ class RecordsCubit extends Cubit<RecordsState> {
               errorMessage: 'Unable to load records. Please try again.',
             ),
           );
+          unawaited(_subscription?.cancel());
+        },
+        onDone: () {
+          if (isClosed) return;
+          _isWatching = false;
+          if (state.status != RecordsStatus.failure) {
+            emit(
+              state.copyWith(
+                status: RecordsStatus.failure,
+                errorMessage:
+                    'The records connection ended. Try loading records again.',
+              ),
+            );
+          }
         },
       );
     } catch (_) {
       _isWatching = false;
-      emit(
-        state.copyWith(
-          status: RecordsStatus.failure,
-          errorMessage: 'Unable to load records. Please try again.',
-        ),
-      );
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            status: RecordsStatus.failure,
+            errorMessage: 'Unable to load records. Please try again.',
+          ),
+        );
+      }
     }
   }
 
@@ -126,7 +146,7 @@ class RecordsCubit extends Cubit<RecordsState> {
   }
 
   Future<void> _mutate(Future<void> Function() action) async {
-    if (state.isMutating || isClosed) return;
+    if (isClosed || state.isMutating) return;
 
     emit(state.copyWith(isMutating: true, clearError: true));
     try {
