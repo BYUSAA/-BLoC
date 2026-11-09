@@ -41,7 +41,7 @@ The UI talks to Cubits, Cubits depend on repository contracts, and data implemen
 
 ## Requirements
 
-- Flutter 3.47.2 and its bundled Dart SDK (the package constraint accepts Flutter 3.32+ / Dart 3.6+).
+- Flutter 3.47.2 and its bundled Dart SDK (the package constraint accepts Flutter 3.35+ / Dart 3.6+).
 - Android Studio with Android SDK and an Android emulator or physical Android device.
 - Firebase project with Email/Password and Google sign-in providers enabled, plus Cloud Firestore.
 - Google OAuth web/server client ID for Google sign-in.
