@@ -1,32 +1,52 @@
-# Implementation status
+# Implementation and verification status
 
-## Repository structure
-- Flutter application source, feature-first folders, shared/core folders.
-- Android Gradle configuration and Kotlin entry point.
-- iOS Podfile, Runner plist/delegate and launch screen.
-- Web entry point and manifest.
-- Linux, macOS and Windows target directories with generation instructions.
-- Assets, Firebase rules/indexes, docs, tests, tooling and CI workflow.
+Last repository review: 9 November 2026.
 
-## Implemented app capabilities
-- Cubit-based authentication and preferences.
-- Email/password registration/login, Google sign-in, password reset, logout.
-- Firestore record create/read/update/delete with live updates.
-- Three persisted preferences.
-- Owner-scoped Firestore rules.
-- Graceful Firebase configuration screen if options are missing.
+## Implemented in source
 
-## Must still be completed on a machine with Flutter
-1. Run `flutter create --platforms=android,ios,web,windows,linux,macos .` to generate SDK-version-specific native project files, Gradle wrapper JAR, platform runners and registrants.
-2. Run `flutter pub get` to generate the real `pubspec.lock`.
-3. Configure Firebase options and Google OAuth client IDs.
-4. Run format, analyze, tests and Android device build; fix any diagnostics.
-5. Capture genuine device screenshots and demo evidence.
+- [x] Flutter app entry point with safe Firebase setup fallback.
+- [x] Material 3 light and dark themes.
+- [x] AuthCubit for email/password, Google sign-in, password reset and sign-out flows.
+- [x] Email verification on registration and verification enforcement for password sign-in.
+- [x] PreferencesCubit for three persisted preferences.
+- [x] Domain-level RecordsRepository contract and Firestore implementation.
+- [x] RecordsCubit for live stream state, retry, CRUD orchestration and stream disposal.
+- [x] Firestore owner isolation, field validation and composite query index.
+- [x] Storage rules restricting user-owned files by type and size.
+- [x] Unit tests for RecordsCubit and preference state.
+- [x] Widget test for the records empty state.
+- [x] Integration-test target for the Firebase configuration fallback.
+- [x] GitHub Actions workflow for generated platform scaffolding, formatting, analysis, tests and Android APK build.
 
-## Assignment-specific inputs still missing
-- Approved Figma link/export and app-specific entities/screens.
-- Group number and members' GitHub usernames.
-- Firebase project details / team access.
+## Verification that is still required
 
-This document intentionally does not claim that native builds, Firebase deployment,
-test coverage targets, or the final assignment design have already been verified.
+The repository has been edited through GitHub, but this environment does not have the Flutter/Dart SDK and has not run the app on an Android emulator or phone. Do not report any of the following as passed until a real CI run or local run confirms it:
+
+- [ ] Flutter dependency resolution and generated `pubspec.lock`.
+- [ ] Generated Gradle wrapper JAR and complete platform runners.
+- [ ] `dart format` with no pending changes.
+- [ ] `flutter analyze --fatal-infos --fatal-warnings` with zero diagnostics.
+- [ ] All unit and widget tests.
+- [ ] Android release APK build.
+- [ ] Firebase rules deployment and emulator/project security tests.
+- [ ] Google sign-in on the registered Android package.
+- [ ] Device-level CRUD and authentication checks.
+- [ ] At least 70% test coverage target from the assignment.
+
+Check the [GitHub Actions runs](https://github.com/BYUSAA/-BLoC/actions) and fix any failed step before calling the code build-ready.
+
+## Inputs still needed for final assignment alignment
+
+- Approved Figma prototype/export and the actual application problem/domain.
+- Group number and the full list of team members' names and GitHub usernames.
+- Firebase project access/configuration and registered Android app details.
+- Genuine individual branch/commit evidence for every team member.
+
+## Submission evidence still outstanding
+
+- Final ERD for the approved domain.
+- Updated screenshots from a real Android device.
+- PDF report with research, design, architecture, data model, tests, collaboration and reflection.
+- 10–15 minute recorded demonstration.
+
+The current application is a generic authenticated records workspace. It is not yet the final Figma-matched assignment app.
