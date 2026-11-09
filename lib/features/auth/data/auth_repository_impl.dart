@@ -10,10 +10,26 @@ class AuthRepositoryImpl {
   User? get currentUser => _auth.currentUser;
 
   Future<void> signIn(String email, String password) async {
-    await _auth.signInWithEmailAndPassword(
+    final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
+    final user = credential.user;
+
+    final passwordProvider = user?.providerData.any(
+          (provider) => provider.providerId == 'password',
+        ) ??
+        false;
+
+    if (user != null && passwordProvider && !user.emailVerified) {
+      await user.sendEmailVerification();
+      await _auth.signOut();
+      throw FirebaseAuthException(
+        code: 'email-not-verified',
+        message:
+            'Verify your email using the link we sent before signing in.',
+      );
+    }
   }
 
   Future<void> register(String email, String password) async {
@@ -22,6 +38,7 @@ class AuthRepositoryImpl {
       password: password,
     );
     await credential.user?.sendEmailVerification();
+    await _auth.signOut();
   }
 
   /// Returns false when the user closes the Google account picker.
