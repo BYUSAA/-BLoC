@@ -37,9 +37,21 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepositoryImpl _repository;
 
   Future<void> restoreSession() async {
+    final user = _repository.currentUser;
+    final passwordProvider = user?.providerData.any(
+          (provider) => provider.providerId == 'password',
+        ) ??
+        false;
+
+    if (user != null && passwordProvider && !user.emailVerified) {
+      await _repository.signOut();
+      emit(const AuthState(status: AuthStatus.unauthenticated));
+      return;
+    }
+
     emit(
       AuthState(
-        status: _repository.currentUser == null
+        status: user == null
             ? AuthStatus.unauthenticated
             : AuthStatus.authenticated,
       ),
