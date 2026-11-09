@@ -6,6 +6,7 @@ import 'app/app.dart';
 import 'core/config/firebase_config.dart';
 import 'core/preferences/preferences_cubit.dart';
 import 'features/auth/data/auth_repository_impl.dart';
+import 'features/auth/domain/auth_repository.dart';
 import 'features/auth/presentation/auth_cubit.dart';
 import 'features/records/data/records_repository_impl.dart';
 
@@ -35,7 +36,7 @@ Future<void> main() async {
       child: firebaseError == null
           ? MultiRepositoryProvider(
               providers: [
-                RepositoryProvider<AuthRepositoryImpl>(
+                RepositoryProvider<AuthRepository>(
                   create: (_) => AuthRepositoryImpl(),
                 ),
                 RepositoryProvider<RecordsRepositoryImpl>(
@@ -44,9 +45,8 @@ Future<void> main() async {
               ],
               child: Builder(
                 builder: (context) => BlocProvider(
-                  create: (_) =>
-                      AuthCubit(context.read<AuthRepositoryImpl>())
-                        ..restoreSession(),
+                  create: (_) => AuthCubit(context.read<AuthRepository>())
+                    ..restoreSession(),
                   child: const AssignmentApp(),
                 ),
               ),
