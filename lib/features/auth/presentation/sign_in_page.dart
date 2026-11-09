@@ -3,6 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'auth_cubit.dart';
 
+class _EmailValidation {
+  static final RegExp _pattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+  static bool isValid(String value) => _pattern.hasMatch(value.trim());
+}
+
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
@@ -35,6 +41,17 @@ class _SignInPageState extends State<SignInPage> {
         );
   }
 
+  void _resetPassword() {
+    if (!_EmailValidation.isValid(_email.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid email address first.')),
+      );
+      return;
+    }
+
+    context.read<AuthCubit>().resetPassword(_email.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,9 +82,7 @@ class _SignInPageState extends State<SignInPage> {
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Sign in to manage your workspace.',
-                        ),
+                        const Text('Sign in to manage your workspace.'),
                         const SizedBox(height: 28),
                         TextFormField(
                           controller: _email,
@@ -79,13 +94,11 @@ class _SignInPageState extends State<SignInPage> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
-                          validator: (value) {
-                            final email = value?.trim() ?? '';
-                            final valid = RegExp(
-                              r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
-                            ).hasMatch(email);
-                            return valid ? null : 'Enter a valid email address.';
-                          },
+                          validator: (value) => _EmailValidation.isValid(
+                            value ?? '',
+                          )
+                              ? null
+                              : 'Enter a valid email address.',
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -170,17 +183,7 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                         ),
                         TextButton(
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  if (!(_formKey.currentState?.validate() ??
-                                      false)) {
-                                    return;
-                                  }
-                                  context
-                                      .read<AuthCubit>()
-                                      .resetPassword(_email.text);
-                                },
+                          onPressed: isLoading ? null : _resetPassword,
                           child: const Text('Forgot password?'),
                         ),
                       ],
