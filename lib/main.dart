@@ -9,6 +9,7 @@ import 'features/auth/data/auth_repository_impl.dart';
 import 'features/auth/domain/auth_repository.dart';
 import 'features/auth/presentation/auth_cubit.dart';
 import 'features/records/data/records_repository_impl.dart';
+import 'features/records/domain/records_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,7 @@ Future<void> main() async {
                 RepositoryProvider<AuthRepository>(
                   create: (_) => AuthRepositoryImpl(),
                 ),
-                RepositoryProvider<RecordsRepositoryImpl>(
+                RepositoryProvider<RecordsRepository>(
                   create: (_) => RecordsRepositoryImpl(),
                 ),
               ],
