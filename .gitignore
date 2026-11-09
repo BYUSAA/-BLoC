@@ -1,3 +1,4 @@
+# Dart and Flutter
 .dart_tool/
 .packages
 .pub-cache/
@@ -6,17 +7,36 @@ build/
 coverage/
 .flutter-plugins
 .flutter-plugins-dependencies
+.flutter-plugins-dependencies.tmp
+
+# Android
 /android/.gradle/
 /android/local.properties
 /android/key.properties
 /android/app/google-services.json
-/lib/firebase_options.dart
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+
+# iOS and macOS
 /ios/Flutter/Generated.xcconfig
 /ios/Flutter/flutter_export_environment.sh
 /ios/Pods/
+/ios/.symlinks/
+/ios/Runner/GeneratedPluginRegistrant.*
 /macos/Pods/
+/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Firebase local configuration and emulator state
+/firebase.local.json
+/firebase-debug.log
+/ui-debug.log
 /.firebase/
+/.firebaserc.local
+
+# IDE and operating system
 /.idea/
 /.vscode/
 *.iml
 .DS_Store
+Thumbs.db
