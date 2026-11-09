@@ -1,20 +1,39 @@
-# Flutter BLoC Assignment
+# BLoC Assignment — Flutter application
 
-A mobile-first Flutter starter using BLoC/Cubit, Clean Architecture, Firebase Authentication, Cloud Firestore, and SharedPreferences.
+A mobile-first Flutter starter using Cubit/BLoC, Firebase Authentication,
+Cloud Firestore, and SharedPreferences.
 
-## Included
-- Email/password registration and sign-in, Google sign-in, password reset, and sign-out.
-- Firestore create/read/update/delete for owner-scoped records with live snapshot updates.
-- Three persisted preferences (dark theme, notifications preference, compact layout).
-- Firestore owner-only security rules, basic tests, and GitHub Actions.
+## Important project status
+This repository began empty. The current application is a generic authenticated
+records workspace used as a technical foundation. The approved Figma design and
+the final product domain have not yet been supplied, so this is not yet the
+finished assignment-specific app.
 
-## Run locally (Android only)
-1. Install Flutter and Android Studio.
-2. Clone this repository and run flutter create --platforms=android . to generate Android platform scaffolding if it is not present.
-3. Run flutter pub get.
-4. Configure Firebase using flutterfire configure. Enable Email/Password and Google providers, register the Android app, add SHA fingerprints, and create a Firestore database.
-5. Deploy firestore.rules, then run dart format ., flutter analyze, and flutter test.
-6. Run on an Android emulator or physical Android device: flutter run.
+## Project setup
+1. Install Flutter stable, Android Studio and Android SDK.
+2. Run `flutter create --platforms=android,ios,web,windows,linux,macos .`
+   from the repository root to generate platform-specific project files and
+   wrappers with your installed Flutter version.
+3. Run `flutter pub get`.
+4. Configure Firebase using the steps in [docs/installation.md](docs/installation.md).
+5. Run `dart format .`, `flutter analyze`, `flutter test`.
+6. Run on an Android emulator or physical Android device with Firebase Dart
+   defines supplied.
 
-## Important
-The original repository was empty. This commit supplies a generic records workspace as a technical foundation. The approved Figma prototype and exact app domain have not been supplied, so this is not yet a pixel-perfect or final assignment implementation. See docs/IMPLEMENTATION_STATUS.md for remaining requirements and honest limitations.
+## Project layout
+- `lib/app`: app shell, routes, theme and constants.
+- `lib/core`: Firebase configuration, preferences, utilities and widgets.
+- `lib/features`: authentication and records features.
+- `lib/data`: shared data contracts and models.
+- `firebase`: Firestore rules, indexes and Storage rules.
+- `assets`: image, icon, font, animation and document resources.
+- `docs`: architecture, installation, API contract and evidence guidance.
+- `test` / `integration_test`: unit, widget and integration test locations.
+- `.github/workflows`: automated Flutter validation.
+
+## Firebase configuration
+No Firebase project secrets or service-account keys are committed. Without
+Firebase options the app now launches a setup screen rather than crashing.
+Cloud authentication and CRUD require your Firebase project configuration.
+
+See [implementation status](docs/IMPLEMENTATION_STATUS.md) for outstanding work.
