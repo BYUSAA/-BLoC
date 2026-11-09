@@ -46,21 +46,29 @@ class RecordsCubit extends Cubit<RecordsState> {
 
   final RecordsRepository _repository;
   StreamSubscription<List<Record>>? _subscription;
+  bool _isWatching = false;
 
-  void watch() => unawaited(_restartWatch());
+  void watch() {
+    if (isClosed || _isWatching) return;
+    _isWatching = true;
+    unawaited(_restartWatch());
+  }
 
   Future<void> _restartWatch() async {
-    await _subscription?.cancel();
-    if (isClosed) return;
-
-    emit(
-      state.copyWith(
-        status: RecordsStatus.loading,
-        clearError: true,
-      ),
-    );
-
     try {
+      await _subscription?.cancel();
+      if (isClosed) {
+        _isWatching = false;
+        return;
+      }
+
+      emit(
+        state.copyWith(
+          status: RecordsStatus.loading,
+          clearError: true,
+        ),
+      );
+
       _subscription = _repository.watchRecords().listen(
         (records) => emit(
           state.copyWith(
@@ -69,7 +77,8 @@ class RecordsCubit extends Cubit<RecordsState> {
             clearError: true,
           ),
         ),
-        onError: (Object error) {
+        onError: (Object _) {
+          _isWatching = false;
           emit(
             state.copyWith(
               status: RecordsStatus.failure,
@@ -79,6 +88,7 @@ class RecordsCubit extends Cubit<RecordsState> {
         },
       );
     } catch (_) {
+      _isWatching = false;
       emit(
         state.copyWith(
           status: RecordsStatus.failure,
@@ -116,26 +126,31 @@ class RecordsCubit extends Cubit<RecordsState> {
   }
 
   Future<void> _mutate(Future<void> Function() action) async {
-    if (state.isMutating) return;
+    if (state.isMutating || isClosed) return;
 
     emit(state.copyWith(isMutating: true, clearError: true));
     try {
       await action();
-      emit(state.copyWith(isMutating: false));
+      if (!isClosed) emit(state.copyWith(isMutating: false));
     } catch (_) {
-      emit(
-        state.copyWith(
-          isMutating: false,
-          errorMessage: 'The change could not be saved. Please try again.',
-        ),
-      );
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isMutating: false,
+            errorMessage: 'The change could not be saved. Please try again.',
+          ),
+        );
+      }
     }
   }
 
-  void clearError() => emit(state.copyWith(clearError: true));
+  void clearError() {
+    if (!isClosed) emit(state.copyWith(clearError: true));
+  }
 
   @override
   Future<void> close() async {
+    _isWatching = false;
     await _subscription?.cancel();
     await super.close();
   }
