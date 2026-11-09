@@ -17,8 +17,8 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.standard,
-      appBarTheme: const AppBarTheme(centerTitle: false),
-      inputDecorationTheme: InputDecorationTheme(
+      appBarTheme: const AppBarThemeData(centerTitle: false),
+      inputDecorationTheme: InputDecorationThemeData(
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
         contentPadding: const EdgeInsets.symmetric(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'constants/app_constants.dart';
-import 'theme/app_theme.dart';
 import '../core/preferences/preferences_cubit.dart';
 import '../core/widgets/app_loading.dart';
 import '../features/auth/presentation/auth_cubit.dart';
 import '../features/auth/presentation/sign_in_page.dart';
 import '../features/records/domain/records_repository.dart';
 import '../features/records/presentation/records_page.dart';
+import 'constants/app_constants.dart';
+import 'theme/app_theme.dart';
 
 class AssignmentApp extends StatelessWidget {
   const AssignmentApp({super.key});

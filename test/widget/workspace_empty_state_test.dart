@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc_assignment_app/core/preferences/preferences_cubit.dart';
+import 'package:bloc_assignment_app/features/auth/domain/auth_repository.dart';
+import 'package:bloc_assignment_app/features/auth/presentation/auth_cubit.dart';
 import 'package:bloc_assignment_app/features/records/domain/record.dart';
 import 'package:bloc_assignment_app/features/records/domain/records_repository.dart';
 import 'package:bloc_assignment_app/features/records/presentation/records_page.dart';
@@ -34,16 +36,48 @@ class _FakeRecordsRepository implements RecordsRepository {
   Future<void> dispose() => _controller.close();
 }
 
+class _FakeAuthRepository implements AuthRepository {
+  @override
+  bool get hasActiveSession => true;
+
+  @override
+  bool get emailVerificationRequired => false;
+
+  @override
+  Future<void> signIn(String email, String password) async {}
+
+  @override
+  Future<void> register(String email, String password) async {}
+
+  @override
+  Future<bool> signInWithGoogle() async => true;
+
+  @override
+  Future<void> sendPasswordReset(String email) async {}
+
+  @override
+  Future<void> signOut() async {}
+}
+
 void main() {
-  testWidgets('workspace shows the empty state after records load', (
+  testWidgets('workspace shows empty state and create form after loading', (
     tester,
   ) async {
     final repository = _FakeRecordsRepository();
     final preferences = PreferencesCubit();
+    final authCubit = AuthCubit(_FakeAuthRepository());
+    addTearDown(() async {
+      await authCubit.close();
+      await preferences.close();
+      await repository.dispose();
+    });
 
     await tester.pumpWidget(
-      BlocProvider.value(
-        value: preferences,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: preferences),
+          BlocProvider.value(value: authCubit),
+        ],
         child: MaterialApp(
           home: RecordsPage(repository: repository),
         ),
@@ -67,7 +101,5 @@ void main() {
     expect(find.text('Description'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
-    await preferences.close();
-    await repository.dispose();
   });
 }

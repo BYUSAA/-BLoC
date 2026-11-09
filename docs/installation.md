@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Flutter 3.47.2 with its bundled Dart SDK (the package supports Flutter 3.27+ and Dart 3.6+).
+- Flutter 3.47.2 with its bundled Dart SDK (the package supports Flutter 3.32+ and Dart 3.6+).
 - Android Studio, Android SDK, and an Android emulator or physical Android device.
 - Firebase project with Email/Password and Google Authentication enabled, plus Cloud Firestore.
 - Google OAuth web/server client ID for Google Sign-In.
