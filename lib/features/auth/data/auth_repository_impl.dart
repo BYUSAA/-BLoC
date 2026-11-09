@@ -1,14 +1,27 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class AuthRepositoryImpl {
+import '../domain/auth_repository.dart';
+
+class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({FirebaseAuth? auth})
       : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
 
-  User? get currentUser => _auth.currentUser;
+  @override
+  bool get hasActiveSession => _auth.currentUser != null;
 
+  @override
+  bool get emailVerificationRequired {
+    final user = _auth.currentUser;
+    if (user == null || user.emailVerified) return false;
+    return user.providerData.any(
+      (provider) => provider.providerId == 'password',
+    );
+  }
+
+  @override
   Future<void> signIn(String email, String password) async {
     final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
@@ -24,14 +37,13 @@ class AuthRepositoryImpl {
     if (user != null && passwordProvider && !user.emailVerified) {
       await user.sendEmailVerification();
       await _auth.signOut();
-      throw FirebaseAuthException(
-        code: 'email-not-verified',
-        message:
-            'Verify your email using the link we sent before signing in.',
+      throw StateError(
+        'Verify your email using the link we sent before signing in.',
       );
     }
   }
 
+  @override
   Future<void> register(String email, String password) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -42,6 +54,7 @@ class AuthRepositoryImpl {
   }
 
   /// Returns false when the user closes the Google account picker.
+  @override
   Future<bool> signInWithGoogle() async {
     final serverClientId =
         const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
@@ -61,10 +74,12 @@ class AuthRepositoryImpl {
     return true;
   }
 
+  @override
   Future<void> sendPasswordReset(String email) {
     return _auth.sendPasswordResetEmail(email: email.trim());
   }
 
+  @override
   Future<void> signOut() async {
     try {
       await GoogleSignIn().signOut();
