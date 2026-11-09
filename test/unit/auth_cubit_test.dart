@@ -107,6 +107,18 @@ void main() {
     expect(cubit.state.notice, contains('reset instructions'));
   });
 
+  test('failed password reset clears stale notices and exposes an error', () async {
+    await cubit.resetPassword('person@example.com');
+    expect(cubit.state.notice, isNotNull);
+
+    repository.shouldFail = true;
+    await cubit.resetPassword('person@example.com');
+
+    expect(cubit.state.status, AuthStatus.unauthenticated);
+    expect(cubit.state.notice, isNull);
+    expect(cubit.state.error, isNotNull);
+  });
+
   test('repository errors become safe user-facing errors', () async {
     repository.shouldFail = true;
 
