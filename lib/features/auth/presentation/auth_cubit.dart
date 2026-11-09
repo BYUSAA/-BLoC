@@ -1,11 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../data/auth_repository_impl.dart';
+import '../domain/auth_repository.dart';
 
 enum AuthStatus { unknown, unauthenticated, loading, authenticated }
 
-class AuthState {
+class AuthState extends Equatable {
   const AuthState({
     this.status = AuthStatus.unknown,
     this.error,
@@ -29,31 +29,32 @@ class AuthState {
       notice: clearNotice ? null : notice ?? this.notice,
     );
   }
+
+  @override
+  List<Object?> get props => [status, error, notice];
 }
 
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit(this._repository) : super(const AuthState());
 
-  final AuthRepositoryImpl _repository;
+  final AuthRepository _repository;
 
   Future<void> restoreSession() async {
-    final user = _repository.currentUser;
-    final passwordProvider = user?.providerData.any(
-          (provider) => provider.providerId == 'password',
-        ) ??
-        false;
-
-    if (user != null && passwordProvider && !user.emailVerified) {
-      await _repository.signOut();
+    if (_repository.emailVerificationRequired) {
+      try {
+        await _repository.signOut();
+      } catch (_) {
+        // A blocked, unverified session must never enter the workspace.
+      }
       emit(const AuthState(status: AuthStatus.unauthenticated));
       return;
     }
 
     emit(
       AuthState(
-        status: user == null
-            ? AuthStatus.unauthenticated
-            : AuthStatus.authenticated,
+        status: _repository.hasActiveSession
+            ? AuthStatus.authenticated
+            : AuthStatus.unauthenticated,
       ),
     );
   }
@@ -86,18 +87,12 @@ class AuthCubit extends Cubit<AuthState> {
 
       await _repository.signIn(email, password);
       emit(const AuthState(status: AuthStatus.authenticated));
-    } on FirebaseAuthException catch (error) {
-      emit(
-        AuthState(
-          status: AuthStatus.unauthenticated,
-          error: error.message ?? 'Authentication failed.',
-        ),
-      );
     } catch (_) {
       emit(
         const AuthState(
           status: AuthStatus.unauthenticated,
-          error: 'Something went wrong. Please try again.',
+          error:
+              'Authentication failed. Check your details and verify your email if you just registered.',
         ),
       );
     }
@@ -121,18 +116,11 @@ class AuthCubit extends Cubit<AuthState> {
               : AuthStatus.unauthenticated,
         ),
       );
-    } on FirebaseAuthException catch (error) {
-      emit(
-        AuthState(
-          status: AuthStatus.unauthenticated,
-          error: error.message ?? 'Google sign-in failed.',
-        ),
-      );
     } catch (_) {
       emit(
         const AuthState(
           status: AuthStatus.unauthenticated,
-          error: 'Google sign-in failed. Please try again.',
+          error: 'Google sign-in failed. Check the OAuth configuration.',
         ),
       );
     }
@@ -147,14 +135,12 @@ class AuthCubit extends Cubit<AuthState> {
           notice: 'Password reset instructions have been sent to your email.',
         ),
       );
-    } on FirebaseAuthException catch (error) {
+    } catch (_) {
       emit(
         state.copyWith(
-          error: error.message ?? 'Unable to send password reset email.',
+          error: 'Unable to send password reset email. Check the email address.',
         ),
       );
-    } catch (_) {
-      emit(state.copyWith(error: 'Unable to send password reset email.'));
     }
   }
 
