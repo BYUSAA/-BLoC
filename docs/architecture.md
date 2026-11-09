@@ -1,13 +1,12 @@
 # Architecture
 
-The starter is organized around feature boundaries and separates presentation,
-domain models, and Firebase-backed data adapters.
+The application uses a feature-first Clean Architecture structure.
 
-- **Presentation:** Flutter pages and Cubit state.
-- **Domain:** framework-light entities such as Record.
-- **Data:** Firebase Authentication and Firestore repository implementations.
-- **Core:** app configuration, preferences, errors, utilities, and shared widgets.
+- Presentation: Flutter pages and Cubit state.
+- Domain: framework-light entities and repository contracts.
+- Data: Firebase Authentication and Cloud Firestore adapters.
+- Core: Firebase configuration, preferences, errors, utilities and shared widgets.
 
-The approved Figma prototype and exact application domain were not provided.
-Consequently, the current generic Records feature is a foundation, not a claim
-that the final product requirements or design have been implemented.
+The approved Figma prototype and actual product domain have not yet been
+provided. The generic Records feature is a technical starter, not a claim that
+the final design or full product scope has been implemented.
