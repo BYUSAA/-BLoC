@@ -61,21 +61,25 @@ class PreferencesCubit extends Cubit<PreferencesState> {
 
   Future<void> setDarkMode(bool value) async {
     await _persist(_darkModeKey, value);
-    emit(state.copyWith(darkMode: value));
+    if (!isClosed) emit(state.copyWith(darkMode: value));
   }
 
   Future<void> setNotifications(bool value) async {
     await _persist(_notificationsKey, value);
-    emit(state.copyWith(notificationsEnabled: value));
+    if (!isClosed) emit(state.copyWith(notificationsEnabled: value));
   }
 
   Future<void> setCompactLayout(bool value) async {
     await _persist(_compactLayoutKey, value);
-    emit(state.copyWith(compactLayout: value));
+    if (!isClosed) emit(state.copyWith(compactLayout: value));
   }
 
   Future<void> _persist(String key, bool value) async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool(key, value);
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool(key, value);
+    } catch (_) {
+      // The in-memory preference still updates if persistent storage fails.
+    }
   }
 }
