@@ -127,18 +127,26 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> resetPassword(String email) async {
+    emit(
+      state.copyWith(
+        status: AuthStatus.loading,
+        clearError: true,
+        clearNotice: true,
+      ),
+    );
+
     try {
       await _repository.sendPasswordReset(email);
       emit(
-        state.copyWith(
-          clearError: true,
+        const AuthState(
+          status: AuthStatus.unauthenticated,
           notice: 'Password reset instructions have been sent to your email.',
         ),
       );
     } catch (_) {
       emit(
-        state.copyWith(
-          clearNotice: true,
+        const AuthState(
+          status: AuthStatus.unauthenticated,
           error: 'Unable to send password reset email. Check the email address.',
         ),
       );
