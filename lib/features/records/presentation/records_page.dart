@@ -3,14 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/preferences/preferences_cubit.dart';
 import '../../auth/presentation/auth_cubit.dart';
-import '../data/records_repository_impl.dart';
 import '../domain/record.dart';
+import '../domain/records_repository.dart';
 import 'records_cubit.dart';
+import 'widgets/records_empty_state.dart';
 
 class RecordsPage extends StatelessWidget {
   const RecordsPage({super.key, required this.repository});
 
-  final RecordsRepositoryImpl repository;
+  final RecordsRepository repository;
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +44,12 @@ class _RecordsView extends StatelessWidget {
                 TextFormField(
                   controller: titleController,
                   autofocus: true,
-                  maxLength: RecordsRepositoryImpl.maxTitleLength,
+                  maxLength: RecordsRepository.maxTitleLength,
                   decoration: const InputDecoration(labelText: 'Title'),
                   validator: (value) {
                     final title = value?.trim() ?? '';
                     if (title.isEmpty) return 'Title is required.';
-                    if (title.length > RecordsRepositoryImpl.maxTitleLength) {
+                    if (title.length > RecordsRepository.maxTitleLength) {
                       return 'Title is too long.';
                     }
                     return null;
@@ -56,12 +57,12 @@ class _RecordsView extends StatelessWidget {
                 ),
                 TextFormField(
                   controller: descriptionController,
-                  maxLength: RecordsRepositoryImpl.maxDescriptionLength,
+                  maxLength: RecordsRepository.maxDescriptionLength,
                   maxLines: 3,
                   decoration: const InputDecoration(labelText: 'Description'),
                   validator: (value) {
                     if ((value?.length ?? 0) >
-                        RecordsRepositoryImpl.maxDescriptionLength) {
+                        RecordsRepository.maxDescriptionLength) {
                       return 'Description is too long.';
                     }
                     return null;
@@ -199,22 +200,7 @@ class _RecordsView extends StatelessWidget {
             }
 
             if (state.records.isEmpty) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.inbox_outlined, size: 52),
-                      SizedBox(height: 12),
-                      Text(
-                        'No records yet. Add your first one.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              return const RecordsEmptyState();
             }
 
             return ListView.separated(
