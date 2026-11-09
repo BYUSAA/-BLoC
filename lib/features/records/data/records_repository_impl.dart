@@ -15,9 +15,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  static const int maxTitleLength = 100;
-  static const int maxDescriptionLength = 1000;
-
   CollectionReference<Map<String, dynamic>> get _collection =>
       _firestore.collection('records');
 
@@ -95,11 +92,11 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
   String _validateTitle(String value) {
     final title = value.trim();
-    if (title.isEmpty || title.length > maxTitleLength) {
+    if (title.isEmpty || title.length > RecordsRepository.maxTitleLength) {
       throw ArgumentError.value(
         value,
         'title',
-        'Title must contain 1 to $maxTitleLength characters.',
+        'Title must contain 1 to ${RecordsRepository.maxTitleLength} characters.',
       );
     }
     return title;
@@ -107,11 +104,11 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
   String _validateDescription(String value) {
     final description = value.trim();
-    if (description.length > maxDescriptionLength) {
+    if (description.length > RecordsRepository.maxDescriptionLength) {
       throw ArgumentError.value(
         value,
         'description',
-        'Description cannot exceed $maxDescriptionLength characters.',
+        'Description cannot exceed ${RecordsRepository.maxDescriptionLength} characters.',
       );
     }
     return description;
