@@ -60,23 +60,32 @@ class RecordsCubit extends Cubit<RecordsState> {
       ),
     );
 
-    _subscription = _repository.watchRecords().listen(
-      (records) => emit(
-        state.copyWith(
-          status: RecordsStatus.loaded,
-          records: List<Record>.unmodifiable(records),
-          clearError: true,
-        ),
-      ),
-      onError: (Object error) {
-        emit(
+    try {
+      _subscription = _repository.watchRecords().listen(
+        (records) => emit(
           state.copyWith(
-            status: RecordsStatus.failure,
-            errorMessage: 'Unable to load records. Please try again.',
+            status: RecordsStatus.loaded,
+            records: List<Record>.unmodifiable(records),
+            clearError: true,
           ),
-        );
-      },
-    );
+        ),
+        onError: (Object error) {
+          emit(
+            state.copyWith(
+              status: RecordsStatus.failure,
+              errorMessage: 'Unable to load records. Please try again.',
+            ),
+          );
+        },
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: RecordsStatus.failure,
+          errorMessage: 'Unable to load records. Please try again.',
+        ),
+      );
+    }
   }
 
   Future<void> create({
