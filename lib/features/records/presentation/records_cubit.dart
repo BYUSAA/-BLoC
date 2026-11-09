@@ -40,16 +40,26 @@ class RecordsState extends Equatable {
   List<Object?> get props => [status, records, errorMessage, isMutating];
 }
 
-/// Owns the records stream and all record mutations for the presentation layer.
+/// Owns the records stream and mutations used by the workspace screen.
 class RecordsCubit extends Cubit<RecordsState> {
   RecordsCubit(this._repository) : super(const RecordsState());
 
   final RecordsRepository _repository;
   StreamSubscription<List<Record>>? _subscription;
 
-  void watch() {
-    if (_subscription != null) return;
-    emit(state.copyWith(status: RecordsStatus.loading, clearError: true));
+  void watch() => unawaited(_restartWatch());
+
+  Future<void> _restartWatch() async {
+    await _subscription?.cancel();
+    if (isClosed) return;
+
+    emit(
+      state.copyWith(
+        status: RecordsStatus.loading,
+        clearError: true,
+      ),
+    );
+
     _subscription = _repository.watchRecords().listen(
       (records) => emit(
         state.copyWith(
@@ -58,7 +68,7 @@ class RecordsCubit extends Cubit<RecordsState> {
           clearError: true,
         ),
       ),
-      onError: (Object error, StackTrace stackTrace) {
+      onError: (Object error) {
         emit(
           state.copyWith(
             status: RecordsStatus.failure,
@@ -98,11 +108,12 @@ class RecordsCubit extends Cubit<RecordsState> {
 
   Future<void> _mutate(Future<void> Function() action) async {
     if (state.isMutating) return;
+
     emit(state.copyWith(isMutating: true, clearError: true));
     try {
       await action();
       emit(state.copyWith(isMutating: false));
-    } catch (error) {
+    } catch (_) {
       emit(
         state.copyWith(
           isMutating: false,
