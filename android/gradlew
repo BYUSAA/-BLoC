@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -eu
+GRADLE_VERSION=8.10.2
+GRADLE_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}/manual-gradle/gradle-$GRADLE_VERSION"
+if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then
+  mkdir -p "${GRADLE_USER_HOME:-$HOME/.gradle}/manual-gradle"
+  ARCHIVE="${TMPDIR:-/tmp}/gradle-$GRADLE_VERSION-bin.zip"
+  curl -fL "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip" -o "$ARCHIVE"
+  unzip -q -o "$ARCHIVE" -d "${GRADLE_USER_HOME:-$HOME/.gradle}/manual-gradle"
+fi
+exec "$GRADLE_HOME/bin/gradle" "$@"
