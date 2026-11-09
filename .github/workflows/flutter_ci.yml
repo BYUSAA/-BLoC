@@ -1,0 +1,27 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate native platform scaffolding
+        run: flutter create --platforms=android,ios,web,windows,linux,macos .
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Format
+        run: dart format .
+      - name: Analyze
+        run: flutter analyze
+      - name: Unit and widget tests
+        run: flutter test --coverage
