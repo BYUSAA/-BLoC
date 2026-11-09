@@ -138,6 +138,7 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (_) {
       emit(
         state.copyWith(
+          clearNotice: true,
           error: 'Unable to send password reset email. Check the email address.',
         ),
       );
