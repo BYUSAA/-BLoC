@@ -1,0 +1,11 @@
+{
+  "name": "BLoC Assignment",
+  "short_name": "BLoC",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3157d5",
+  "description": "Flutter BLoC assignment app",
+  "orientation": "portrait",
+  "prefer_related_applications": false
+}
